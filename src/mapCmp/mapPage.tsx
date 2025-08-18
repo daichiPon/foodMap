@@ -2,6 +2,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import { generateClient } from "aws-amplify/data";
+import { Authenticator } from '@aws-amplify/ui-react';
 import type { Schema } from "../../amplify/data/resource";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -93,6 +94,14 @@ export default function MapWithPinForm() {
   };
 
   return (
+    <>
+      <Authenticator>
+        {({ signOut }) => (
+          <div>
+            <button onClick={signOut}>ログアウト</button>
+          </div>
+        )}
+      </Authenticator>
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", width: "100vw"  }}>
       <div ref={mapContainer} style={{ flex: 1 }} />
       <form
@@ -116,5 +125,6 @@ export default function MapWithPinForm() {
         <button type="submit">登録</button>
       </form>
     </div>
+    </>
   );
 }

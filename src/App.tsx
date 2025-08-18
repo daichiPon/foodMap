@@ -13,14 +13,9 @@ const App: React.FC = () => {
   return (
     <>
     <Authenticator>
-      {({ signOut }) => (
-        <div>
-          <button onClick={signOut}>ログアウト</button>
-        </div>
-      )}
-
+      <MapWithPinForm />
     </Authenticator>
-    <MapWithPinForm />
+
     </>
   );
 };
