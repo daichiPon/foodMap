@@ -1,0 +1,4 @@
+{
+  "AppSyncApiName": "LocationAPI",
+  "AuthCognitoUserPoolId": "<AuthのUserPoolIdを参照>"
+}

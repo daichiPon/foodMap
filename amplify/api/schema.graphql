@@ -1,0 +1,7 @@
+type Location @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  name: String!
+  description: String
+  latitude: Float
+  longitude: Float
+}

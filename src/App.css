@@ -1,0 +1,6 @@
+/* src/App.css */
+.amplify-authenticator {
+  background-image: url('path/to/your/background-image.jpg');
+  background-size: cover;
+  background-position: center;
+}
