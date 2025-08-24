@@ -6,15 +6,20 @@ adding a new "isDone" field as a boolean. The authorization rule below
 specifies that any unauthenticated user can "create", "read", "update", 
 and "delete" any "Todo" records.
 =========================================================================*/
+
+//https://docs.amplify.aws/react/build-a-backend/data/customize-authz/
 const schema = a.schema({
   Location: a.model({
-    name: a.string(),                   // 必須文字列
-    description: a.string(), // 任意文字列
-    latitude: a.float(),                // 小数点ありの数値
-    longitude: a.float(),               // 小数点ありの数値
-  }).authorization((allow) => [allow.guest()]),
+    name: a.string(),                   
+    description: a.string(), 
+    latitude: a.float(),                
+    longitude: a.float(),               
+  }).authorization((allow) => [
+    allow.owner(),
+    allow.authenticated(),
+    allow.authenticated("identityPool"),
+  ])
 });
-
 
 export type Schema = ClientSchema<typeof schema>;
 
@@ -39,7 +44,9 @@ cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
 //"use client"
 import { generateClient } from "aws-amplify/data";
 
-export const client = generateClient<Schema>() // use this Data client for CRUDL requests
+export const client = generateClient<Schema>({
+  authMode: 'identityPool',
+}); // use this Data client for CRUDL requests
 
 
 /*== STEP 3 ===============================================================

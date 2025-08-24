@@ -2,7 +2,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import { generateClient } from "aws-amplify/data";
-import { Authenticator } from '@aws-amplify/ui-react';
+import { Authenticator ,useAuthenticator } from '@aws-amplify/ui-react';
 import type { Schema } from "../../amplify/data/resource";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -10,12 +10,12 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 export default function MapWithPinForm() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
-  const client = generateClient<Schema>();
   const [name, setName] = useState("東京");
   const [desc, setDesc] = useState("東京の地点");
   const [lat, setLat] = useState(35.6895);
   const [lng, setLng] = useState(139.6917);
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
+  const client = generateClient<Schema>({authMode: 'identityPool'});
 
   // 登録済み地点取得
   const fetchLocations = async () => {
@@ -78,12 +78,18 @@ export default function MapWithPinForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await client.models.Location.create({
+      console.log("登録データ:", { name, desc, lat, lng });
+      const res = await client.models.Location.create({
         name,
         description: desc || undefined,
         latitude: lat,
         longitude: lng,
       });
+      console.log("res",res)
+      if (res.errors) {
+      alert("登録失敗: " + JSON.stringify(res.errors));
+      return;
+    }
       alert("登録しました！");
       setName("");
       setDesc("");
@@ -93,8 +99,16 @@ export default function MapWithPinForm() {
     }
   };
 
+  //現在のログインuser
+  function MyComponent() {
+  const { user } = useAuthenticator((context) => [context.user]);
+  console.log("user情報",user);
+  return <div>ユーザID：{user?.username}</div>;
+}
+
   return (
     <>
+    <MyComponent/>
       <Authenticator>
         {({ signOut }) => (
           <div>
