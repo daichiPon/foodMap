@@ -1,3 +1,17 @@
+# Food Map Webアプリ
+
+React + TypeScript + Vite で作成した Webアプリです。
+
+- 公開URL: [https://food-map-lime.vercel.app](https://food-map-lime.vercel.app)
+- 機能
+  - 店舗の位置登録
+  - 地図上でピン表示
+  - ログイン機能（Cognito）
+
+## 使い方
+1. 上記URLにアクセス
+2. 画面に従って操作してください
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
