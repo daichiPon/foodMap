@@ -9,6 +9,19 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB に設定
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/index-.*\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'js-assets',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 // 1日
+              }
+            }
+          }
+        ],
       },
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
