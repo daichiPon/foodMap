@@ -15,6 +15,7 @@ export default defineConfig({
         name: 'My App',
         short_name: 'App',
         description: 'React + Vite + AWS + Vercel PWA',
+        display: "standalone", 
         theme_color: '#ffffff',
         icons: [
           {
