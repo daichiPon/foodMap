@@ -20,6 +20,7 @@ export default function MapWithPinForm() {
   const [desc, setDesc] = useState("現在の地点");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
@@ -175,24 +176,6 @@ export default function MapWithPinForm() {
         {/* Map */}
         <div ref={mapContainer} style={{ flex: 1 }} />
 
-        {/* 現在地に戻るボタン */}
-        <button
-          onClick={moveToCurrentLocation}
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            zIndex: 2,
-            padding: "8px 12px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          現在地に戻る
-        </button>
-
         {/* ログアウトボタンをその下に配置 */}
         <Authenticator>
           {({ signOut }) => (
@@ -200,7 +183,7 @@ export default function MapWithPinForm() {
               onClick={signOut}
               style={{
                 position: "absolute",
-                top: 50, 
+                top: 10, 
                 right: 10,
                 zIndex: 2,
                 padding: "8px 12px",
@@ -215,24 +198,93 @@ export default function MapWithPinForm() {
           )}
         </Authenticator>
 
-        {/* 登録フォーム */}
-        <form
-          onSubmit={handleSubmit}
-          style={{ padding: 10, display: "flex", flexDirection: "column", gap: 5 }}
+        {/* 現在地に戻るボタン */}
+        <button
+          onClick={moveToCurrentLocation}
+          style={{
+            position: "absolute",
+            top: 55,
+            right: 10,
+            zIndex: 2,
+            padding: "8px 12px",
+            background: "white",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
         >
-          <input
-            placeholder="地点名"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <input
-            placeholder="説明"
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-          />
-          <button type="submit">登録</button>
-        </form>
+          現在地
+        </button>
+
+         {/* ＋ボタン（フォーム開閉用） */}
+        <button
+          onClick={() => setShowForm(true)}
+          style={{
+            position: "absolute",
+            top: 100,
+            right: 10,
+            zIndex: 2,
+            width: "40px",
+            height: "40px",
+            borderRadius: "40%",
+            background: "#007bff",
+            color: "white",
+            fontSize: "10px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          ✙
+        </button>
+
+        {/* サイドフォーム（右側にスライドイン） */}
+        {showForm && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "300px",
+              height: "100%",
+              background: "white",
+              boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              zIndex: 3,
+            }}
+          >
+            {/* 閉じるボタン */}
+            <button
+              onClick={() => setShowForm(false)}
+              style={{
+                alignSelf: "flex-end",
+                border: "none",
+                background: "transparent",
+                fontSize: "20px",
+                cursor: "pointer",
+              }}
+            >
+            ×
+            </button>
+
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <input
+                placeholder="地点名"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+              <input
+                placeholder="説明"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+              />
+              <button type="submit">登録</button>
+            </form>
+          </div>
+        )}
       </div>
     </>
   );
