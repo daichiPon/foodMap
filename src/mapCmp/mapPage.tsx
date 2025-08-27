@@ -161,15 +161,8 @@ export default function MapWithPinForm() {
     }
   };
 
-  /** ログインユーザ表示 */
-  function CurrentUser() {
-    const { user } = useAuthenticator((context) => [context.user]);
-    return <div>ユーザID：{user?.username}</div>;
-  }
-
   return (
     <>
-    <CurrentUser/>
       <div
         style={{
           display: "flex",
@@ -207,7 +200,7 @@ export default function MapWithPinForm() {
               onClick={signOut}
               style={{
                 position: "absolute",
-                top: 50, // 現在地ボタンの下にずらす
+                top: 50, 
                 right: 10,
                 zIndex: 2,
                 padding: "8px 12px",
@@ -238,11 +231,6 @@ export default function MapWithPinForm() {
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
           />
-          {lat != null && lng != null && (
-            <div>
-              緯度: {lat.toFixed(5)}, 経度: {lng.toFixed(5)}
-            </div>
-          )}
           <button type="submit">登録</button>
         </form>
       </div>

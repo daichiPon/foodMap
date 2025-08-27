@@ -25,7 +25,7 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'My App',
+        name: 'foodMap',
         short_name: 'App',
         description: 'React + Vite + AWS + Vercel PWA',
         display: "standalone", 
