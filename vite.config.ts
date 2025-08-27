@@ -28,7 +28,7 @@ export default defineConfig({
         name: 'foodMap',
         short_name: 'App',
         description: 'React + Vite + AWS + Vercel PWA',
-        display: "standalone", 
+        display: "fullscreen",
         theme_color: '#ffffff',
         icons: [
           {
