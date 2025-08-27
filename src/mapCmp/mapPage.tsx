@@ -2,7 +2,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import { generateClient } from "aws-amplify/data";
-import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react";
+import { Authenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
 
 // Mapbox アクセストークン
