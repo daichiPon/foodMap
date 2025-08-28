@@ -23,6 +23,8 @@ export default function MapWithPinForm() {
   const [showForm, setShowForm] = useState(false);
   const [address, setAddress] = useState("");
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
+
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
 
@@ -152,6 +154,28 @@ export default function MapWithPinForm() {
 
     return data.features[0]?.place_name || "住所が見つかりません";
   };
+
+  useEffect(() => {
+  if (!mapRef.current) return;
+
+  savedMarkersRef.current.forEach((m) => m.remove());
+  savedMarkersRef.current = [];
+
+  locations.forEach((loc) => {
+    if (loc.latitude != null && loc.longitude != null) {
+      const m = new mapboxgl.Marker({ color: "red" })
+        .setLngLat([loc.longitude, loc.latitude])
+        .addTo(mapRef.current!);
+
+      // タップ・クリックでボトムシートを開く
+      m.getElement().addEventListener("click", () => {
+        setSelectedLocation(loc);
+      });
+
+      savedMarkersRef.current.push(m);
+    }
+  });
+}, [locations]);
   
 
   /** 地点登録 */
@@ -307,6 +331,34 @@ export default function MapWithPinForm() {
                 />
               <button type="submit">登録</button>
             </form>
+          </div>
+        )}
+        {selectedLocation && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              background: "white",
+              borderTopLeftRadius: "16px",
+              borderTopRightRadius: "16px",
+              boxShadow: "0 -2px 8px rgba(0,0,0,0.2)",
+              padding: "16px",
+              zIndex: 4,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ fontWeight: "bold" }}>{selectedLocation.name || "無名地点"}</h2>
+              <button
+                style={{ fontSize: "20px", background: "transparent", border: "none", cursor: "pointer" }}
+                onClick={() => setSelectedLocation(null)}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ marginTop: "8px" }}>{selectedLocation.description}</p>
+            <p style={{ marginTop: "4px", color: "#555" }}>{selectedLocation.address}</p>
           </div>
         )}
       </div>
