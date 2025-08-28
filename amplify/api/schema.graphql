@@ -4,4 +4,5 @@ type Location @model @auth(rules: [{ allow: public }]) {
   description: String
   latitude: Float
   longitude: Float
+  address: String!
 }

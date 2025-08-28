@@ -21,6 +21,7 @@ export default function MapWithPinForm() {
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [address, setAddress] = useState("");
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
@@ -134,32 +135,50 @@ export default function MapWithPinForm() {
       { enableHighAccuracy: true }
     );
   };
+  /**登録フォームを開く＆緯度と経度から住所を取得*/
+  const handleOpenForm = async () => {
+    setShowForm(true);
+
+    if (lat != null && lng != null) {
+      const addr = await getAddress(lng, lat);
+      console.log(addr)
+      setAddress(addr);
+    }
+  };
+  const getAddress = async (lng: number, lat: number) => {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    return data.features[0]?.place_name || "住所が見つかりません";
+  };
+  
 
   /** 地点登録 */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (lat == null || lng == null) return;
-
-    try {
-      const res = await client.models.Location.create({
-        name,
-        description: desc || undefined,
-        latitude: lat,
-        longitude: lng,
-      });
-
-      if (res.errors) {
-        alert("登録失敗: " + JSON.stringify(res.errors));
-        return;
+      try {
+        const res = await client.models.Location.create({
+          name,
+          description: desc || undefined,
+          latitude: lat,
+          longitude: lng,
+          address: address,
+        });
+          if (res.errors) {
+            alert("登録失敗: " + JSON.stringify(res.errors));
+            return;
+          }
+        alert("登録しました！");
+        setName("");
+        setDesc("");
+        setAddress("");
+        fetchLocations(); // 更新
+        setShowForm(false);
+      } catch (err) {
+        console.error("登録エラー:", err);
       }
-
-      alert("登録しました！");
-      setName("");
-      setDesc("");
-      fetchLocations(); // 更新
-    } catch (err) {
-      console.error("登録エラー:", err);
-    }
   };
 
   return (
@@ -218,7 +237,7 @@ export default function MapWithPinForm() {
 
          {/* ＋ボタン（フォーム開閉用） */}
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() =>handleOpenForm()}
           style={{
             position: "absolute",
             top: 100,
@@ -281,6 +300,11 @@ export default function MapWithPinForm() {
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
               />
+               <input
+                  value={address}
+                  readOnly
+                  style={{ backgroundColor: "#f0f0f0" }}
+                />
               <button type="submit">登録</button>
             </form>
           </div>

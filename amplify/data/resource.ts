@@ -13,7 +13,8 @@ const schema = a.schema({
     name: a.string(),                   
     description: a.string(), 
     latitude: a.float(),                
-    longitude: a.float(),               
+    longitude: a.float(),  
+    address: a.string()             
   }).authorization((allow) => [
     allow.owner(),
     allow.authenticated(),
