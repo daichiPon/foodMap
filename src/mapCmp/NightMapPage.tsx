@@ -71,7 +71,7 @@ export default function NightMapPage() {
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v12",
+      style: "mapbox://styles/daichid/cmewx0zzb00pn01sgapg63f9j",
       center: [lng ?? 139.6917, lat ?? 35.6895],
       zoom: 12,
     });
