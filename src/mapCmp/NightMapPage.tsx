@@ -1,14 +1,15 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
 
 // Mapbox アクセストークン
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+mapboxgl.accessToken = import.meta.env.VITE_NIGHT_MAPBOX_TOKEN;
 
-export default function MapWithPinForm() {
+export default function NightMapPage() {
   // ---- Refs ----
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -27,6 +28,7 @@ export default function MapWithPinForm() {
 
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
+  const navigate =useNavigate()
 
   /** 登録済み地点を取得 */
   const fetchLocations = async () => {
@@ -156,27 +158,27 @@ export default function MapWithPinForm() {
   };
 
   useEffect(() => {
-  if (!mapRef.current) return;
+    if (!mapRef.current) return;
 
-  savedMarkersRef.current.forEach((m) => m.remove());
-  savedMarkersRef.current = [];
+    savedMarkersRef.current.forEach((m) => m.remove());
+    savedMarkersRef.current = [];
 
-  locations.forEach((loc) => {
-    if (loc.latitude != null && loc.longitude != null) {
-      const m = new mapboxgl.Marker({ color: "red" })
-        .setLngLat([loc.longitude, loc.latitude])
-        .addTo(mapRef.current!);
+    locations.forEach((loc) => {
+        if (loc.latitude != null && loc.longitude != null) {
+        const m = new mapboxgl.Marker({ color: "red" })
+            .setLngLat([loc.longitude, loc.latitude])
+            .addTo(mapRef.current!);
 
-      // タップ・クリックでボトムシートを開く
-      m.getElement().addEventListener("click", () => {
-        setSelectedLocation(loc);
-      });
+        // タップ・クリックでボトムシートを開く
+        m.getElement().addEventListener("click", () => {
+            setSelectedLocation(loc);
+        });
 
-      savedMarkersRef.current.push(m);
-    }
-  });
-}, [locations]);
-  
+        savedMarkersRef.current.push(m);
+        }
+    });
+  }, [locations]);
+    
 
   /** 地点登録 */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -257,6 +259,24 @@ export default function MapWithPinForm() {
           }}
         >
           現在地
+        </button>
+
+        {/* 昼のコンポーネントに遷移するボタン */}
+        <button
+          onClick={()=> navigate("/")}
+          style={{
+            position: "absolute",
+            top: 50,
+            left: 10,
+            zIndex: 2,
+            padding: "8px 12px",
+            background: "white",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          昼
         </button>
 
          {/* ＋ボタン（フォーム開閉用） */}
