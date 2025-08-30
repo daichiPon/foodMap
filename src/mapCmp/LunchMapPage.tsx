@@ -139,25 +139,6 @@ export default function LunchMapPage() {
     );
   };
 
-  /**登録フォームを開く＆緯度と経度から住所を取得*/
-  const handleOpenForm = async () => {
-    setShowForm(true);
-
-    if (lat != null && lng != null) {
-      const addr = await getAddress(lng, lat);
-      console.log(addr)
-      setAddress(addr);
-    }
-  };
-  
-  const getAddress = async (lng: number, lat: number) => {
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    return data.features[0]?.place_name || "住所が見つかりません";
-  };
-
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -184,7 +165,13 @@ export default function LunchMapPage() {
   /** 地点登録 */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (lat == null || lng == null) return;
+    if (lat == null || lng == null){
+       return
+      }else{
+      const addr = await getAddress(lng, lat);
+      console.log(addr)
+      setAddress(addr);
+    }
       try {
         const res = await client.models.Location.create({
           name,
@@ -207,6 +194,14 @@ export default function LunchMapPage() {
         console.error("登録エラー:", err);
       }
   };
+
+      const getAddress = async (lng: number, lat: number) => {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      return data.features[0]?.place_name || "住所が見つかりません";
+    };
 
   return (
     <>
@@ -282,7 +277,7 @@ export default function LunchMapPage() {
 
          {/* ＋ボタン（フォーム開閉用） */}
         <button
-          onClick={() =>handleOpenForm()}
+          onClick={() =>setShowForm(true)}
           style={{
             position: "absolute",
             top: 100,
@@ -345,11 +340,6 @@ export default function LunchMapPage() {
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
               />
-               <input
-                  value={address}
-                  readOnly
-                  style={{ backgroundColor: "#f0f0f0" }}
-                />
               <button type="submit">登録</button>
             </form>
           </div>

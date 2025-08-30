@@ -17,18 +17,17 @@ export default function NightMapPage() {
   const savedMarkersRef = useRef<mapboxgl.Marker[]>([]); // 登録済みマーカーを保持
 
   // ---- State ----
-  const [name, setName] = useState("現在地");
-  const [desc, setDesc] = useState("現在の地点");
+  const [name, setName] = useState<string>("現在地");
+  const [desc, setDesc] = useState<string>("現在の地点");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [address, setAddress] = useState("");
+  const [showForm, setShowForm] = useState<boolean>(false);
+  const [address, setAddress] = useState<string>("");
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
 
-
   const client = generateClient<Schema>({ authMode: "identityPool" });
-  const navigate =useNavigate()
+  const navigate = useNavigate();
 
   /** 登録済み地点を取得 */
   const fetchLocations = async () => {
@@ -139,23 +138,6 @@ export default function NightMapPage() {
       { enableHighAccuracy: true }
     );
   };
-  /**登録フォームを開く＆緯度と経度から住所を取得*/
-  const handleOpenForm = async () => {
-    setShowForm(true);
-
-    if (lat != null && lng != null) {
-      const addr = await getAddress(lng, lat);
-      console.log(addr)
-      setAddress(addr);
-    }
-  };
-  const getAddress = async (lng: number, lat: number) => {
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    return data.features[0]?.place_name || "住所が見つかりません";
-  };
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -164,26 +146,32 @@ export default function NightMapPage() {
     savedMarkersRef.current = [];
 
     locations.forEach((loc) => {
-        if (loc.latitude != null && loc.longitude != null) {
+      if (loc.latitude != null && loc.longitude != null) {
         const m = new mapboxgl.Marker({ color: "red" })
-            .setLngLat([loc.longitude, loc.latitude])
-            .addTo(mapRef.current!);
+          .setLngLat([loc.longitude, loc.latitude])
+          .addTo(mapRef.current!);
 
         // タップ・クリックでボトムシートを開く
         m.getElement().addEventListener("click", () => {
-            setSelectedLocation(loc);
+          setSelectedLocation(loc);
         });
 
         savedMarkersRef.current.push(m);
-        }
+      }
     });
   }, [locations]);
-    
+  
 
   /** 地点登録 */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (lat == null || lng == null) return;
+    if (lat == null || lng == null){
+       return
+      }else{
+      const addr = await getAddress(lng, lat);
+      console.log(addr)
+      setAddress(addr);
+    }
       try {
         const res = await client.models.Location.create({
           name,
@@ -206,6 +194,14 @@ export default function NightMapPage() {
         console.error("登録エラー:", err);
       }
   };
+
+      const getAddress = async (lng: number, lat: number) => {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      return data.features[0]?.place_name || "住所が見つかりません";
+    };
 
   return (
     <>
@@ -281,7 +277,7 @@ export default function NightMapPage() {
 
          {/* ＋ボタン（フォーム開閉用） */}
         <button
-          onClick={() =>handleOpenForm()}
+          onClick={() =>setShowForm(true)}
           style={{
             position: "absolute",
             top: 100,
@@ -344,11 +340,6 @@ export default function NightMapPage() {
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
               />
-               <input
-                  value={address}
-                  readOnly
-                  style={{ backgroundColor: "#f0f0f0" }}
-                />
               <button type="submit">登録</button>
             </form>
           </div>
