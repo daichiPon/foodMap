@@ -1,4 +1,4 @@
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -9,17 +9,25 @@ and "delete" any "Todo" records.
 
 //https://docs.amplify.aws/react/build-a-backend/data/customize-authz/
 const schema = a.schema({
-  Location: a.model({
-    name: a.string(),                   
-    description: a.string(), 
-    latitude: a.float(),                
-    longitude: a.float(),  
-    address: a.string()             
-  }).authorization((allow) => [
-    allow.owner(),
-    allow.authenticated(),
-    allow.authenticated("identityPool"),
-  ])
+  Location: a
+    .model({
+      name: a.string(),
+      description: a.string(),
+      latitude: a.float(),
+      longitude: a.float(),
+      address: a.string(),
+      category: a.string(),
+      priceRange: a.string(),
+      rating: a.float(),
+      facorite: a.boolean(),
+      hours: a.string(),
+      closed: a.string(),
+    })
+    .authorization((allow) => [
+      allow.owner(),
+      allow.authenticated(),
+      allow.authenticated("identityPool"),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -27,7 +35,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'identityPool',
+    defaultAuthorizationMode: "identityPool",
   },
 });
 
@@ -41,14 +49,12 @@ Actions or Pages Router? Review how to generate Data clients for those use
 cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
 =========================================================================*/
 
-
 //"use client"
 import { generateClient } from "aws-amplify/data";
 
 export const client = generateClient<Schema>({
-  authMode: 'identityPool',
+  authMode: "identityPool",
 }); // use this Data client for CRUDL requests
-
 
 /*== STEP 3 ===============================================================
 Fetch records from the database and use them in your frontend component.

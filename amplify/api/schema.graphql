@@ -1,8 +1,14 @@
 type Location @model @auth(rules: [{ allow: public }]) {
-  id: ID!
-  name: String!
-  description: String
-  latitude: Float
-  longitude: Float
-  address: String!
+  id: ID! # 一意のID（自動生成）
+  name: String! # 店名 / 場所の名前
+  description: String # 説明・メモ（自由入力）
+  latitude: Float # 緯度（GPS座標）
+  longitude: Float # 経度（GPS座標）
+  address: String! # 住所
+  category: String # カテゴリ（例: ラーメン、カフェ、寿司など）
+  priceRange: String # 価格帯
+  rating: Float # 評価（例: 1.0〜5.0）
+  favorite: Boolean # お気に入り登録フラグ
+  hours: String # 営業時間（例: 11:00〜22:00）
+  closed: String # 定休日（例: 火曜日）
 }
