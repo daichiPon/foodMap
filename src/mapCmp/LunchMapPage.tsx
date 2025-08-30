@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
+import { LunchSideForm } from "./LunchSideForm";
 
 // Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_LUNCH_MAPBOX_TOKEN;
@@ -17,12 +18,9 @@ export default function LunchMapPage() {
   const savedMarkersRef = useRef<mapboxgl.Marker[]>([]); // 登録済みマーカーを保持
 
   // ---- State ----
-  const [name, setName] = useState<string>("現在地");
-  const [desc, setDesc] = useState<string>("現在の地点");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [address, setAddress] = useState<string>("");
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
 
@@ -160,48 +158,6 @@ export default function LunchMapPage() {
       }
     });
   }, [locations]);
-  
-
-  /** 地点登録 */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (lat == null || lng == null){
-       return
-      }else{
-      const addr = await getAddress(lng, lat);
-      console.log(addr)
-      setAddress(addr);
-    }
-      try {
-        const res = await client.models.Location.create({
-          name,
-          description: desc || undefined,
-          latitude: lat,
-          longitude: lng,
-          address: address,
-        });
-          if (res.errors) {
-            alert("登録失敗: " + JSON.stringify(res.errors));
-            return;
-          }
-        alert("登録しました！");
-        setName("");
-        setDesc("");
-        setAddress("");
-        fetchLocations(); // 更新
-        setShowForm(false);
-      } catch (err) {
-        console.error("登録エラー:", err);
-      }
-  };
-
-      const getAddress = async (lng: number, lat: number) => {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      return data.features[0]?.place_name || "住所が見つかりません";
-    };
 
   return (
     <>
@@ -224,7 +180,7 @@ export default function LunchMapPage() {
               onClick={signOut}
               style={{
                 position: "absolute",
-                top: 10, 
+                top: 10,
                 right: 10,
                 zIndex: 2,
                 padding: "8px 12px",
@@ -259,7 +215,7 @@ export default function LunchMapPage() {
 
         {/* 夜のコンポーネントに遷移するボタン */}
         <button
-          onClick={()=> navigate("/night")}
+          onClick={() => navigate("/night")}
           style={{
             position: "absolute",
             top: 50,
@@ -275,9 +231,9 @@ export default function LunchMapPage() {
           夜
         </button>
 
-         {/* ＋ボタン（フォーム開閉用） */}
+        {/* ＋ボタン（フォーム開閉用） */}
         <button
-          onClick={() =>setShowForm(true)}
+          onClick={() => setShowForm(true)}
           style={{
             position: "absolute",
             top: 100,
@@ -296,54 +252,16 @@ export default function LunchMapPage() {
           ✙
         </button>
 
-        {/* サイドフォーム（右側にスライドイン） */}
+        {/*登録フォーム*/}
         {showForm && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "300px",
-              height: "100%",
-              background: "white",
-              boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
-              padding: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              zIndex: 3,
-            }}
-          >
-            {/* 閉じるボタン */}
-            <button
-              onClick={() => setShowForm(false)}
-              style={{
-                alignSelf: "flex-end",
-                border: "none",
-                background: "transparent",
-                fontSize: "20px",
-                cursor: "pointer",
-              }}
-            >
-            ×
-            </button>
-
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <input
-                placeholder="地点名"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <input
-                placeholder="説明"
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-              />
-              <button type="submit">登録</button>
-            </form>
-          </div>
+          <LunchSideForm
+            lat={lat}
+            lng={lng}
+            onClose={() => setShowForm(false)}
+            onRegisterComplete={(newLoc) => setLocations((prev) => [...prev, newLoc])}
+          />
         )}
+
         {selectedLocation && (
           <div
             style={{
@@ -362,7 +280,12 @@ export default function LunchMapPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ fontWeight: "bold" }}>{selectedLocation.name || "無名地点"}</h2>
               <button
-                style={{ fontSize: "20px", background: "transparent", border: "none", cursor: "pointer" }}
+                style={{
+                  fontSize: "20px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                }}
                 onClick={() => setSelectedLocation(null)}
               >
                 ✕
