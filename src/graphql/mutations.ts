@@ -1,14 +1,13 @@
 // src/graphql/mutations.ts
 export const createLocation = /* GraphQL */ `
-  mutation CreateLocation(
-    $input: CreateLocationInput!
-  ) {
+  mutation CreateLocation($input: CreateLocationInput!) {
     createLocation(input: $input) {
       id
       name
       description
       latitude
       longitude
+      address
       owner
     }
   }
@@ -23,6 +22,7 @@ export const listLocations = /* GraphQL */ `
         description
         latitude
         longitude
+        address
         owner
       }
     }

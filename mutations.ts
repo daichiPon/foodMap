@@ -13,12 +13,20 @@ export const createLocation = /* GraphQL */ `mutation CreateLocation(
   $input: CreateLocationInput!
 ) {
   createLocation(condition: $condition, input: $input) {
+    address
+    category
+    closed
     createdAt
     description
+    facorite
+    hours
     id
     latitude
     longitude
     name
+    owner
+    priceRange
+    rating
     updatedAt
     __typename
   }
@@ -32,12 +40,20 @@ export const deleteLocation = /* GraphQL */ `mutation DeleteLocation(
   $input: DeleteLocationInput!
 ) {
   deleteLocation(condition: $condition, input: $input) {
+    address
+    category
+    closed
     createdAt
     description
+    facorite
+    hours
     id
     latitude
     longitude
     name
+    owner
+    priceRange
+    rating
     updatedAt
     __typename
   }
@@ -51,12 +67,20 @@ export const updateLocation = /* GraphQL */ `mutation UpdateLocation(
   $input: UpdateLocationInput!
 ) {
   updateLocation(condition: $condition, input: $input) {
+    address
+    category
+    closed
     createdAt
     description
+    facorite
+    hours
     id
     latitude
     longitude
     name
+    owner
+    priceRange
+    rating
     updatedAt
     __typename
   }

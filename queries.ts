@@ -10,12 +10,20 @@ type GeneratedQuery<InputType, OutputType> = string & {
 
 export const getLocation = /* GraphQL */ `query GetLocation($id: ID!) {
   getLocation(id: $id) {
+    address
+    category
+    closed
     createdAt
     description
+    facorite
+    hours
     id
     latitude
     longitude
     name
+    owner
+    priceRange
+    rating
     updatedAt
     __typename
   }
@@ -31,12 +39,20 @@ export const listLocations = /* GraphQL */ `query ListLocations(
 ) {
   listLocations(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
+      address
+      category
+      closed
       createdAt
       description
+      facorite
+      hours
       id
       latitude
       longitude
       name
+      owner
+      priceRange
+      rating
       updatedAt
       __typename
     }
