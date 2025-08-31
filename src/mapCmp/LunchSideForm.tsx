@@ -10,14 +10,24 @@ type LunchSideFormProps = {
   onRegisterComplete: (newLocation: Schema["Location"]["type"]) => void;
 };
 
-export const LunchSideForm: React.FC<LunchSideFormProps> = ({
-  lat,
-  lng,
-  onClose,
-  onRegisterComplete,
-}) => {
+export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
+  const { lat, lng, onClose, onRegisterComplete } = props;
+
   const [name, setName] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [priceRange, setPriceRange] = useState<string>("");
+
+  const categories = [
+    "大衆居酒屋",
+    "おしゃれ居酒屋",
+    "和食",
+    "洋食",
+    "中華",
+    "カフェ",
+    "ファストフード",
+  ];
+  const priceRanges = ["¥0~¥1000", "¥1000~¥2000", "¥3000~¥4000", "¥4000~¥5000", "¥5000~ ∞ "];
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
 
@@ -44,6 +54,8 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = ({
         latitude: lat,
         longitude: lng,
         address,
+        category,
+        priceRange,
       });
 
       if (res.errors) {
@@ -62,12 +74,45 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = ({
       // フォーム初期化・閉じる
       setName("");
       setDesc("");
+      setCategory("");
+      setPriceRange("");
       onClose();
       alert("登録しました！");
     } catch (err) {
       console.error("登録エラー:", err);
       alert("登録中にエラーが発生しました");
     }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    padding: "10px 12px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    fontSize: "14px",
+    outline: "none",
+    transition: "border-color 0.2s",
+  };
+
+  const selectStyle: React.CSSProperties = {
+    ...inputStyle,
+    appearance: "none", // デフォルト矢印を消す
+    backgroundColor: "white",
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    backgroundColor: "#87CEFA",
+    color: "white",
+    border: "none",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    fontSize: "14px",
+    cursor: "pointer",
+    transition: "background-color 0.2s",
+  };
+
+  const optionStyle: React.CSSProperties = {
+    borderRadius: "8px",
+    padding: "8px",
   };
 
   return (
@@ -109,9 +154,62 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = ({
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          style={inputStyle}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "#ccc")}
         />
-        <input placeholder="説明" value={desc} onChange={(e) => setDesc(e.target.value)} />
-        <button type="submit">登録</button>
+
+        <input
+          placeholder="説明"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+          style={inputStyle}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+        />
+
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required
+          style={selectStyle}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+        >
+          <option value="" style={{ color: "#888" }}>
+            カテゴリーを選択
+          </option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat} style={optionStyle}>
+              {cat}
+            </option>
+          ))}
+        </select>
+        <select
+          value={priceRange}
+          onChange={(e) => setPriceRange(e.target.value)}
+          required
+          style={selectStyle}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+        >
+          <option value="" style={{ color: "#888" }}>
+            一人当たりの金額を選択
+          </option>
+          {priceRanges.map((pri) => (
+            <option key={pri} value={pri} style={optionStyle}>
+              {pri}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          style={buttonStyle}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#00BFFF")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#87CEFA")}
+        >
+          登録
+        </button>
       </form>
     </div>
   );

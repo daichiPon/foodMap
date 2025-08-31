@@ -5,6 +5,8 @@ export const createLocation = /* GraphQL */ `
       id
       name
       description
+      category
+      priceRange
       latitude
       longitude
       address
@@ -20,6 +22,8 @@ export const listLocations = /* GraphQL */ `
         id
         name
         description
+        category
+        priceRange
         latitude
         longitude
         address
