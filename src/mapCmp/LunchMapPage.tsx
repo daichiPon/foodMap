@@ -6,6 +6,7 @@ import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
 import { LunchSideForm } from "./LunchSideForm";
+import LunchSearchSideForm from "./LunchSearchSideForm";
 
 // Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_LUNCH_MAPBOX_TOKEN;
@@ -24,9 +25,14 @@ export default function LunchMapPage() {
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
 
+  //検索用
+  const [searchForm, setSearchForm] = useState<boolean>(false);
+  const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
+
   const client = generateClient<Schema>({ authMode: "identityPool" });
   const navigate = useNavigate();
 
+  console.log(displayLocations);
   /** 登録済み地点を取得 */
   const fetchLocations = async () => {
     try {
@@ -109,11 +115,6 @@ export default function LunchMapPage() {
       if (loc.latitude != null && loc.longitude != null) {
         const m = new mapboxgl.Marker({ color: "red" })
           .setLngLat([loc.longitude, loc.latitude])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 }).setText(
-              `${loc.name || ""}\n${loc.description || ""}`
-            )
-          )
           .addTo(mapRef.current!);
         savedMarkersRef.current.push(m);
       }
@@ -230,6 +231,34 @@ export default function LunchMapPage() {
         >
           夜
         </button>
+
+        <button
+          onClick={() => setSearchForm(true)}
+          style={{
+            position: "absolute",
+            top: 150,
+            right: 15,
+            zIndex: 2,
+            width: "40px",
+            height: "40px",
+            borderRadius: "40%",
+            background: "#007bff",
+            color: "white",
+            fontSize: "10px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          検
+        </button>
+        {searchForm && (
+          <LunchSearchSideForm
+            onClose={() => setSearchForm(false)}
+            onSearchResult={(searchResult) => {
+              setDisplayLocations(searchResult); // 検索結果のみ描画
+            }}
+          />
+        )}
 
         {/* ＋ボタン（フォーム開閉用） */}
         <button

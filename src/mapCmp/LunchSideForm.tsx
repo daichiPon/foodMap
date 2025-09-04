@@ -21,6 +21,10 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   const categories = [
     "大衆居酒屋",
     "おしゃれ居酒屋",
+    "ラーメン",
+    "寿司",
+    "海鮮",
+    "焼肉",
     "和食",
     "洋食",
     "中華",
