@@ -104,6 +104,7 @@ export default function LunchMapPage() {
   }, []);
 
   /** 登録済み地点を地図に描画 */
+  /** 登録済み地点 or 検索結果を地図に描画 */
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -111,15 +112,24 @@ export default function LunchMapPage() {
     savedMarkersRef.current.forEach((m) => m.remove());
     savedMarkersRef.current = [];
 
-    locations.forEach((loc) => {
+    // 検索結果があるならそれを優先
+    const targets = displayLocations.length > 0 ? displayLocations : locations;
+
+    targets.forEach((loc) => {
       if (loc.latitude != null && loc.longitude != null) {
         const m = new mapboxgl.Marker({ color: "red" })
           .setLngLat([loc.longitude, loc.latitude])
           .addTo(mapRef.current!);
+
+        // タップ・クリックでボトムシートを開く
+        m.getElement().addEventListener("click", () => {
+          setSelectedLocation(loc);
+        });
+
         savedMarkersRef.current.push(m);
       }
     });
-  }, [locations]);
+  }, [locations, displayLocations]);
 
   /** 現在地に戻る */
   const moveToCurrentLocation = () => {
@@ -232,34 +242,6 @@ export default function LunchMapPage() {
           夜
         </button>
 
-        <button
-          onClick={() => setSearchForm(true)}
-          style={{
-            position: "absolute",
-            top: 150,
-            right: 15,
-            zIndex: 2,
-            width: "40px",
-            height: "40px",
-            borderRadius: "40%",
-            background: "#007bff",
-            color: "white",
-            fontSize: "10px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          検
-        </button>
-        {searchForm && (
-          <LunchSearchSideForm
-            onClose={() => setSearchForm(false)}
-            onSearchResult={(searchResult) => {
-              setDisplayLocations(searchResult); // 検索結果のみ描画
-            }}
-          />
-        )}
-
         {/* ＋ボタン（フォーム開閉用） */}
         <button
           onClick={() => setShowForm(true)}
@@ -270,12 +252,13 @@ export default function LunchMapPage() {
             zIndex: 2,
             width: "40px",
             height: "40px",
+            fontSize: "15px",
             borderRadius: "40%",
-            background: "#007bff",
-            color: "white",
-            fontSize: "10px",
+            background: "#80b0e2ff",
             border: "none",
-            cursor: "pointer",
+            color: "white",
+            display: "flex",
+            justifyContent: "center",
           }}
         >
           ✙
@@ -289,6 +272,56 @@ export default function LunchMapPage() {
             onClose={() => setShowForm(false)}
             onRegisterComplete={(newLoc) => setLocations((prev) => [...prev, newLoc])}
           />
+        )}
+
+        <button
+          onClick={() => setSearchForm(true)}
+          style={{
+            position: "absolute",
+            top: 150,
+            right: 10,
+            zIndex: 2,
+            fontSize: "15px",
+            width: "40px",
+            height: "40px",
+            borderRadius: "40%",
+            background: "#80b0e2ff",
+            border: "none",
+            color: "white",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          🔍
+        </button>
+        {searchForm && (
+          <LunchSearchSideForm
+            onClose={() => setSearchForm(false)}
+            onSearchResult={(searchResult) => {
+              setDisplayLocations(searchResult); // 検索結果のみ描画
+            }}
+          />
+        )}
+
+        {/* 全体表示に戻すボタン */}
+        {displayLocations.length > 0 && (
+          <button
+            onClick={() => setDisplayLocations([])}
+            style={{
+              position: "absolute",
+              top: 200,
+              right: 15,
+              zIndex: 2,
+              padding: "8px 12px",
+              background: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            全体表示
+          </button>
         )}
 
         {selectedLocation && (
