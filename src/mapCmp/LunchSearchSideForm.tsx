@@ -29,16 +29,28 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
   const priceRanges = ["¥0~¥1000", "¥1000~¥2000", "¥3000~¥4000", "¥4000~¥5000", "¥5000~ ∞ "];
   console.log("category", category);
   const handleSearch = async () => {
+    const filters: any[] = [];
+
+    // 入力があれば filter に追加
+    if (category) {
+      filters.push({ category: { eq: category } });
+    }
+    if (priceRange) {
+      filters.push({ priceRange: { eq: priceRange } });
+    }
+
     const res = await client.models.Location.list({
-      filter: {
-        and: [{ category: { eq: category } }, { priceRange: { eq: priceRange } }],
-      },
+      filter:
+        filters.length > 1
+          ? { and: filters } // 両方入力されていたら and 検索
+          : filters.length === 1
+            ? filters[0] // 片方だけならその条件
+            : undefined, // 両方空なら全件取得
     });
 
     console.log("res", res);
     onClose();
-
-    // 親コンポーネントに渡す
+    //親コンポーネントに渡す
     onSearchResult(res.data);
   };
 
