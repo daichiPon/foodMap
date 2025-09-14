@@ -19,8 +19,8 @@ export default function LunchMapPage() {
   const savedMarkersRef = useRef<mapboxgl.Marker[]>([]); // 登録済みマーカーを保持
 
   // ---- State ----
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
+  const [lat, setLat] = useState<number>(35.6895);
+  const [lng, setLng] = useState<number>(139.6917);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);

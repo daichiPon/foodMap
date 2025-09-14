@@ -1,13 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../amplify/data/resource";
 
 type LunchSideFormProps = {
-  lat: number | null;
-  lng: number | null;
+  lat: number;
+  lng: number;
   onClose: () => void;
   onRegisterComplete: (newLocation: Schema["Location"]["type"]) => void;
+};
+
+type HotpepperResponse = {
+  results: {
+    shop: {
+      name: string;
+    }[];
+  };
 };
 
 export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
@@ -17,6 +25,9 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   const [desc, setDesc] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [priceRange, setPriceRange] = useState<string>("");
+  const [shops, setShops] = useState<string[]>([]);
+
+  console.log("shops", shops);
 
   const categories = [
     "大衆居酒屋",
@@ -41,6 +52,27 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
     const data = await res.json();
     return data.features[0]?.place_name || "住所が見つかりません";
   };
+
+  const fetchShops = async (lat: number, lng: number): Promise<HotpepperResponse> => {
+    const res = await fetch(
+      `https://3ue7ia4aa9.execute-api.ap-northeast-1.amazonaws.com/dev/items?lat=${lat}&lng=${lng}`
+    );
+    console.log("res", JSON.stringify(res));
+
+    if (!res.ok) throw new Error("Failed to fetch");
+
+    const data = await res.json();
+    return data;
+  };
+
+  useEffect(() => {
+    fetchShops(lat, lng)
+      .then((data) => {
+        const shopNames = data.results.shop.map((s: { name: string }) => s.name);
+        setShops(shopNames);
+      })
+      .catch(console.error);
+  }, [lat, lng]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,14 +186,25 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
         style={{ display: "flex", flexDirection: "column", gap: "8px" }}
       >
         <input
-          placeholder="地点名"
+          placeholder="店名を入力または選択"
+          list="shop-list"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          style={inputStyle}
+          style={{
+            ...inputStyle,
+            borderColor: "#ccc",
+            padding: "8px",
+          }}
           onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
           onBlur={(e) => (e.currentTarget.style.borderColor = "#ccc")}
         />
+
+        <datalist id="shop-list">
+          {shops.map((shopName: string) => (
+            <option key={shopName} value={shopName} />
+          ))}
+        </datalist>
 
         <input
           placeholder="説明"
