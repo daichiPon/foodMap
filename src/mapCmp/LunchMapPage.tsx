@@ -332,6 +332,8 @@ export default function LunchMapPage() {
               left: 0,
               width: "100%",
               background: "white",
+              maxHeight: "50%",
+              overflowY: "auto",
               borderTopLeftRadius: "16px",
               borderTopRightRadius: "16px",
               boxShadow: "0 -2px 8px rgba(0,0,0,0.2)",
@@ -364,6 +366,7 @@ export default function LunchMapPage() {
                 style={{
                   marginTop: "10px",
                   width: "90%",
+                  maxHeight: "200px",
                   borderRadius: "10px",
                   objectFit: "cover",
                 }}
