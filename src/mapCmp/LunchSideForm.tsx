@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../amplify/data/resource";
-import { uploadData, getUrl } from "aws-amplify/storage";
+import { uploadData } from "aws-amplify/storage";
 
 type LunchSideFormProps = {
   lat: number;

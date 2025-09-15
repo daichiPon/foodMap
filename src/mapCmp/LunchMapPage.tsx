@@ -353,10 +353,10 @@ export default function LunchMapPage() {
                 ✕
               </button>
             </div>
-            <p style={{ marginTop: "3px" }}>{selectedLocation.category}</p>
-            <p style={{ marginTop: "3px" }}>{selectedLocation.priceRange}</p>
-            <p style={{ marginTop: "3px" }}>{selectedLocation.description}</p>
-            <p style={{ marginTop: "3px" }}>{selectedLocation.address}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.category}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.priceRange}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.description}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.address}</p>
             {selectedLocation.imageUrl && (
               <img
                 src={selectedLocation.imageUrl}
