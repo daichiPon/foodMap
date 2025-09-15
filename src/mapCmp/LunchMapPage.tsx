@@ -342,7 +342,9 @@ export default function LunchMapPage() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 style={{ fontWeight: "bold" }}>{selectedLocation.name || "無名地点"}</h2>
+              <h2 style={{ fontWeight: "bold", color: "#000" }}>
+                {selectedLocation.name || "無名地点"}{" "}
+              </h2>
               <button
                 style={{
                   fontSize: "20px",
