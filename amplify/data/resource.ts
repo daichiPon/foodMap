@@ -19,9 +19,10 @@ const schema = a.schema({
       category: a.string(),
       priceRange: a.string(),
       rating: a.float(),
-      facorite: a.boolean(),
+      favorite: a.boolean(),
       hours: a.string(),
       closed: a.string(),
+      imageUrl: a.string(),
     })
     .authorization((allow) => [
       allow.owner(),

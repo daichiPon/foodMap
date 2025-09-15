@@ -18,9 +18,10 @@ export const createLocation = /* GraphQL */ `mutation CreateLocation(
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name
@@ -45,9 +46,10 @@ export const deleteLocation = /* GraphQL */ `mutation DeleteLocation(
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name
@@ -72,9 +74,10 @@ export const updateLocation = /* GraphQL */ `mutation UpdateLocation(
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name

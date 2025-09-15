@@ -357,6 +357,18 @@ export default function LunchMapPage() {
             <p style={{ marginTop: "3px" }}>{selectedLocation.priceRange}</p>
             <p style={{ marginTop: "3px" }}>{selectedLocation.description}</p>
             <p style={{ marginTop: "3px" }}>{selectedLocation.address}</p>
+            {selectedLocation.imageUrl && (
+              <img
+                src={selectedLocation.imageUrl}
+                alt={selectedLocation.name || "登録画像"}
+                style={{
+                  marginTop: "10px",
+                  width: "90%",
+                  borderRadius: "10px",
+                  objectFit: "cover",
+                }}
+              />
+            )}
           </div>
         )}
       </div>

@@ -11,4 +11,5 @@ type Location @model @auth(rules: [{ allow: public }]) {
   favorite: Boolean # お気に入り登録フラグ
   hours: String # 営業時間（例: 11:00〜22:00）
   closed: String # 定休日（例: 火曜日）
+  imageUrl: String
 }

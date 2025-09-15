@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../amplify/data/resource";
+import { uploadData, getUrl } from "aws-amplify/storage";
 
 type LunchSideFormProps = {
   lat: number;
@@ -26,6 +27,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   const [category, setCategory] = useState<string>("");
   const [priceRange, setPriceRange] = useState<string>("");
   const [shops, setShops] = useState<string[]>([]);
+  const [file, setFile] = useState<File | null>(null);
 
   console.log("shops", shops);
 
@@ -65,6 +67,10 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
     return data;
   };
 
+  const selectPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFile(event.target.files?.[0] ?? null);
+  };
+
   useEffect(() => {
     fetchShops(lat, lng)
       .then((data) => {
@@ -84,6 +90,22 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
     const address = await getAddress(lng, lat);
 
     try {
+      let imageUrl: string | undefined = undefined;
+
+      if (file) {
+        await uploadData({
+          path: `picture-submissions/${file.name}`,
+          data: file,
+          options: { contentType: file.type },
+        });
+
+        const urlResult = await getUrl({
+          path: `picture-submissions/${file.name}`,
+        });
+        imageUrl = urlResult.url.href.toString();
+        console.log("食べ物url", imageUrl);
+      }
+
       const res = await client.models.Location.create({
         name,
         description: desc || undefined,
@@ -92,6 +114,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
         address,
         category,
         priceRange,
+        imageUrl,
       });
 
       if (res.errors) {
@@ -249,6 +272,9 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
             </option>
           ))}
         </select>
+
+        <input type="file" onChange={selectPhoto} />
+
         <button
           type="submit"
           style={buttonStyle}

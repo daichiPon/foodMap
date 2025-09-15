@@ -15,9 +15,10 @@ export const getLocation = /* GraphQL */ `query GetLocation($id: ID!) {
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name
@@ -44,9 +45,10 @@ export const listLocations = /* GraphQL */ `query ListLocations(
       closed
       createdAt
       description
-      facorite
+      favorite
       hours
       id
+      imageUrl
       latitude
       longitude
       name

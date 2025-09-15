@@ -11,6 +11,7 @@ export const createLocation = /* GraphQL */ `
       longitude
       address
       owner
+      imageUrl
     }
   }
 `;
@@ -28,6 +29,7 @@ export const listLocations = /* GraphQL */ `
         longitude
         address
         owner
+        imageUrl
       }
     }
   }

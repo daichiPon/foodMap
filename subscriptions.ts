@@ -18,9 +18,10 @@ export const onCreateLocation = /* GraphQL */ `subscription OnCreateLocation(
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name
@@ -45,9 +46,10 @@ export const onDeleteLocation = /* GraphQL */ `subscription OnDeleteLocation(
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name
@@ -72,9 +74,10 @@ export const onUpdateLocation = /* GraphQL */ `subscription OnUpdateLocation(
     closed
     createdAt
     description
-    facorite
+    favorite
     hours
     id
+    imageUrl
     latitude
     longitude
     name
