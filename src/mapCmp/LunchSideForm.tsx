@@ -94,16 +94,14 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
 
       if (file) {
         await uploadData({
-          path: `picture-submissions/${file.name}`,
+          path: `public/picture-submissions/${file.name}`,
           data: file,
           options: { contentType: file.type },
         });
 
-        const urlResult = await getUrl({
-          path: `picture-submissions/${file.name}`,
-        });
-        imageUrl = urlResult.url.href.toString();
-        console.log("食べ物url", imageUrl);
+        const region = "ap-northeast-1";
+        const bucketName = "amplify-foodmap-nakamotod-amplifyteamdrivebucket28-aezexjijypb3";
+        imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/public/picture-submissions/${file.name}`;
       }
 
       const res = await client.models.Location.create({

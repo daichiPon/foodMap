@@ -226,16 +226,16 @@
               "delete"
             ]
           },
-          "picture-submissions/*": {
+          "public/picture-submissions/*": {
             "authenticated": [
               "get",
-              "list",
-              "write"
+              "list"
             ],
             "guest": [
               "get",
               "list",
-              "write"
+              "write",
+              "delete"
             ]
           }
         }
