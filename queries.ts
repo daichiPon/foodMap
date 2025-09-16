@@ -8,6 +8,18 @@ type GeneratedQuery<InputType, OutputType> = string & {
   __generatedQueryOutput: OutputType;
 };
 
+export const getFollow = /* GraphQL */ `query GetFollow($id: ID!) {
+  getFollow(id: $id) {
+    createdAt
+    followeeId
+    followerId
+    id
+    owner
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedQuery<APITypes.GetFollowQueryVariables, APITypes.GetFollowQuery>;
 export const getLocation = /* GraphQL */ `query GetLocation($id: ID!) {
   getLocation(id: $id) {
     address
@@ -32,6 +44,43 @@ export const getLocation = /* GraphQL */ `query GetLocation($id: ID!) {
 ` as GeneratedQuery<
   APITypes.GetLocationQueryVariables,
   APITypes.GetLocationQuery
+>;
+export const getUser = /* GraphQL */ `query GetUser($id: ID!) {
+  getUser(id: $id) {
+    cognitoSub
+    createdAt
+    email
+    id
+    owner
+    profileImage
+    updatedAt
+    username
+    __typename
+  }
+}
+` as GeneratedQuery<APITypes.GetUserQueryVariables, APITypes.GetUserQuery>;
+export const listFollows = /* GraphQL */ `query ListFollows(
+  $filter: ModelFollowFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listFollows(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      createdAt
+      followeeId
+      followerId
+      id
+      owner
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListFollowsQueryVariables,
+  APITypes.ListFollowsQuery
 >;
 export const listLocations = /* GraphQL */ `query ListLocations(
   $filter: ModelLocationFilterInput
@@ -66,3 +115,25 @@ export const listLocations = /* GraphQL */ `query ListLocations(
   APITypes.ListLocationsQueryVariables,
   APITypes.ListLocationsQuery
 >;
+export const listUsers = /* GraphQL */ `query ListUsers(
+  $filter: ModelUserFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      cognitoSub
+      createdAt
+      email
+      id
+      owner
+      profileImage
+      updatedAt
+      username
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<APITypes.ListUsersQueryVariables, APITypes.ListUsersQuery>;

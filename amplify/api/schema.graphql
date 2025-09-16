@@ -13,3 +13,32 @@ type Location @model @auth(rules: [{ allow: public }]) {
   closed: String # 定休日（例: 火曜日）
   imageUrl: String
 }
+
+type User
+  @model
+  @auth(
+    rules: [
+      { allow: owner } # 自分は CRUD 全部できる
+      { allow: public, operations: [read] } # 誰でも読み取りだけできる
+    ]
+  ) {
+  id: ID!
+  cognitoSub: String!
+  username: String!
+  profileImage: String
+  email: String! @auth(rules: [{ allow: owner }])
+}
+
+type Follow
+  @model
+  @auth(
+    rules: [
+      { allow: owner } # 自分だけが作成/削除できる
+      { allow: public, operations: [read] } # 誰でもフォロー関係を読み取り可
+    ]
+  ) {
+  id: ID!
+  followerId: ID! # フォローする側(User.id)
+  followeeId: ID! # フォローされる側(User.id)
+  createdAt: AWSDateTime
+}

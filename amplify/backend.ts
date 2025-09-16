@@ -1,17 +1,19 @@
 import { defineBackend } from "@aws-amplify/backend";
 import { Stack } from "aws-cdk-lib";
 import { Cors, LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
-import { myApiFunction } from "./function/hotpepperApi/resource";
 
 import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import { storage } from "./storage/resource";
+import { myApiFunction } from "./function/hotpepperApi/resource";
+import { signupLinkToDB } from "./function/signupLinkToDB/resource";
 
 const backend = defineBackend({
   auth,
   data,
   myApiFunction,
   storage,
+  signupLinkToDB,
 });
 
 const apiStack = backend.createStack("api-stack");

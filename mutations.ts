@@ -8,6 +8,24 @@ type GeneratedMutation<InputType, OutputType> = string & {
   __generatedMutationOutput: OutputType;
 };
 
+export const createFollow = /* GraphQL */ `mutation CreateFollow(
+  $condition: ModelFollowConditionInput
+  $input: CreateFollowInput!
+) {
+  createFollow(condition: $condition, input: $input) {
+    createdAt
+    followeeId
+    followerId
+    id
+    owner
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateFollowMutationVariables,
+  APITypes.CreateFollowMutation
+>;
 export const createLocation = /* GraphQL */ `mutation CreateLocation(
   $condition: ModelLocationConditionInput
   $input: CreateLocationInput!
@@ -35,6 +53,44 @@ export const createLocation = /* GraphQL */ `mutation CreateLocation(
 ` as GeneratedMutation<
   APITypes.CreateLocationMutationVariables,
   APITypes.CreateLocationMutation
+>;
+export const createUser = /* GraphQL */ `mutation CreateUser(
+  $condition: ModelUserConditionInput
+  $input: CreateUserInput!
+) {
+  createUser(condition: $condition, input: $input) {
+    cognitoSub
+    createdAt
+    email
+    id
+    owner
+    profileImage
+    updatedAt
+    username
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateUserMutationVariables,
+  APITypes.CreateUserMutation
+>;
+export const deleteFollow = /* GraphQL */ `mutation DeleteFollow(
+  $condition: ModelFollowConditionInput
+  $input: DeleteFollowInput!
+) {
+  deleteFollow(condition: $condition, input: $input) {
+    createdAt
+    followeeId
+    followerId
+    id
+    owner
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteFollowMutationVariables,
+  APITypes.DeleteFollowMutation
 >;
 export const deleteLocation = /* GraphQL */ `mutation DeleteLocation(
   $condition: ModelLocationConditionInput
@@ -64,6 +120,44 @@ export const deleteLocation = /* GraphQL */ `mutation DeleteLocation(
   APITypes.DeleteLocationMutationVariables,
   APITypes.DeleteLocationMutation
 >;
+export const deleteUser = /* GraphQL */ `mutation DeleteUser(
+  $condition: ModelUserConditionInput
+  $input: DeleteUserInput!
+) {
+  deleteUser(condition: $condition, input: $input) {
+    cognitoSub
+    createdAt
+    email
+    id
+    owner
+    profileImage
+    updatedAt
+    username
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteUserMutationVariables,
+  APITypes.DeleteUserMutation
+>;
+export const updateFollow = /* GraphQL */ `mutation UpdateFollow(
+  $condition: ModelFollowConditionInput
+  $input: UpdateFollowInput!
+) {
+  updateFollow(condition: $condition, input: $input) {
+    createdAt
+    followeeId
+    followerId
+    id
+    owner
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateFollowMutationVariables,
+  APITypes.UpdateFollowMutation
+>;
 export const updateLocation = /* GraphQL */ `mutation UpdateLocation(
   $condition: ModelLocationConditionInput
   $input: UpdateLocationInput!
@@ -91,4 +185,24 @@ export const updateLocation = /* GraphQL */ `mutation UpdateLocation(
 ` as GeneratedMutation<
   APITypes.UpdateLocationMutationVariables,
   APITypes.UpdateLocationMutation
+>;
+export const updateUser = /* GraphQL */ `mutation UpdateUser(
+  $condition: ModelUserConditionInput
+  $input: UpdateUserInput!
+) {
+  updateUser(condition: $condition, input: $input) {
+    cognitoSub
+    createdAt
+    email
+    id
+    owner
+    profileImage
+    updatedAt
+    username
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateUserMutationVariables,
+  APITypes.UpdateUserMutation
 >;
