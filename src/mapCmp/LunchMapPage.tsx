@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
-import { LunchSideForm } from "./LunchSideForm";
-import LunchSearchSideForm from "./LunchSearchSideForm";
+import { LunchSideForm } from "./Lunch/SideForm";
+import LunchSearchSideForm from "./Lunch/SearchForm";
 
 // Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_LUNCH_MAPBOX_TOKEN;
