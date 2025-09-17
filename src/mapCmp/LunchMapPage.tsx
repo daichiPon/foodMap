@@ -224,6 +224,23 @@ export default function LunchMapPage() {
           現在地
         </button>
 
+        <button
+          onClick={() => navigate("/settings")}
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 10,
+            zIndex: 2,
+            padding: "8px 12px",
+            background: "white",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          ユーザー設定
+        </button>
+
         {/* 夜のコンポーネントに遷移するボタン */}
         <button
           onClick={() => navigate("/night")}

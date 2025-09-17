@@ -18,7 +18,7 @@ type User
   @model
   @auth(
     rules: [
-      { allow: owner } # 自分は CRUD 全部できる
+      { allow: owner, ownerField: "cognitoSub" } #
       { allow: public, operations: [read] } # 誰でも読み取りだけできる
     ]
   ) {
@@ -26,7 +26,7 @@ type User
   cognitoSub: String!
   username: String!
   profileImage: String
-  email: String! @auth(rules: [{ allow: owner }])
+  email: String! @auth(rules: [{ allow: owner, ownerField: "cognitoSub" }])
 }
 
 type Follow

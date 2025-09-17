@@ -7,6 +7,8 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 import LunchMapPage from "./mapCmp/LunchMapPage";
 import NightMapPage from "./mapCmp/NightMapPage";
+import UserSettingsPage from "./mapCmp/Lunch/UserSettingPage";
+
 import outputs from "./amplify_outputs.json";
 import { vocabularies } from "./vocabularies";
 
@@ -19,12 +21,18 @@ const App: React.FC = () => {
   return (
     <>
       <Authenticator>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LunchMapPage />} />
-            <Route path="/night" element={<NightMapPage />} />
-          </Routes>
-        </BrowserRouter>
+        {({ user }) => (
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LunchMapPage />} />
+              <Route path="/night" element={<NightMapPage />} />
+              <Route
+                path="/settings"
+                element={<UserSettingsPage userId={user?.username || ""} />}
+              />
+            </Routes>
+          </BrowserRouter>
+        )}
       </Authenticator>
     </>
   );
