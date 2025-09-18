@@ -22,16 +22,13 @@ type Location
 type User
   @model
   @auth(
-    rules: [
-      { allow: owner, ownerField: "cognitoSub" } #
-      { allow: public, operations: [read] } # 誰でも読み取りだけできる
-    ]
+    rules: [{ allow: owner, ownerField: "cognitoSub" }, { allow: public, operations: [read] }]
   ) {
   id: ID!
   cognitoSub: String!
   username: String!
   profileImage: String
-  email: String! @auth(rules: [{ allow: owner, ownerField: "cognitoSub" }])
+  email: String!
 }
 
 type Follow

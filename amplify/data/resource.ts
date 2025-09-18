@@ -38,7 +38,11 @@ const schema = a.schema({
       profileImage: a.string(),
       email: a.string().required(),
     })
-    .authorization((allow) => [allow.owner()]),
+    .authorization((allow) => [
+      allow.owner(),
+      allow.authenticated(),
+      allow.authenticated("identityPool"),
+    ]),
 
   Follow: a
     .model({

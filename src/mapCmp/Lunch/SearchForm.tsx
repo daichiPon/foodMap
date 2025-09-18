@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
 
@@ -6,10 +6,13 @@ type Props = {
   onSearchResult: (data: Schema["Location"]["type"][]) => void;
   onClose: () => void;
 };
+type User = Schema["User"]["type"];
 
 export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) {
   const [category, setCategory] = useState("");
   const [priceRange, setPriceRange] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string>("");
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
 
@@ -29,7 +32,7 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
     "ファストフード",
   ];
   const priceRanges = ["¥0~¥1000", "¥1000~¥2000", "¥3000~¥4000", "¥4000~¥5000", "¥5000~ ∞ "];
-  console.log("category", category);
+
   const handleSearch = async () => {
     const filters: any[] = [];
 
@@ -39,6 +42,10 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
     }
     if (priceRange) {
       filters.push({ priceRange: { eq: priceRange } });
+    }
+    console.log(selectedUser);
+    if (selectedUser) {
+      filters.push({ cognitoSub: { eq: selectedUser } });
     }
 
     const res = await client.models.Location.list({
@@ -50,11 +57,31 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
             : undefined, // 両方空なら全件取得
     });
 
-    console.log("res", res);
     onClose();
-    //親コンポーネントに渡す
     onSearchResult(res.data);
   };
+  console.log("user", users);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await client.models.User.list();
+        console.log("res", res);
+        setUsers(res.data);
+
+        let next = res.nextToken;
+        while (next) {
+          const more = await client.models.User.list({ nextToken: next });
+          setUsers((prev) => [...prev, ...more.data]);
+          next = more.nextToken;
+        }
+      } catch (err) {
+        console.error("ユーザー一覧取得エラー:", err);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const inputStyle: React.CSSProperties = {
     padding: "10px 12px",
@@ -150,6 +177,25 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
           </option>
         ))}
       </select>
+
+      <select
+        value={selectedUser}
+        onChange={(e) => setSelectedUser(e.currentTarget.value)}
+        required
+        style={selectStyle}
+        onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
+        onBlur={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+      >
+        <option value="" style={{ color: "#888" }}>
+          ユーザを選択
+        </option>
+        {users.map((user) => (
+          <option key={user.id} value={user.id} style={optionStyle}>
+            {user.username}
+          </option>
+        ))}
+      </select>
+
       <button
         type="submit"
         style={buttonStyle}
