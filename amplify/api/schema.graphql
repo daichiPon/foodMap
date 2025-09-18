@@ -1,4 +1,8 @@
-type Location @model @auth(rules: [{ allow: public }]) {
+type Location
+  @model
+  @auth(
+    rules: [{ allow: owner, ownerField: "cognitoSub" }, { allow: public, operations: [read] }]
+  ) {
   id: ID! # 一意のID（自動生成）
   name: String! # 店名 / 場所の名前
   description: String # 説明・メモ（自由入力）
@@ -12,6 +16,7 @@ type Location @model @auth(rules: [{ allow: public }]) {
   hours: String # 営業時間（例: 11:00〜22:00）
   closed: String # 定休日（例: 火曜日）
   imageUrl: String
+  cognitoSub: String!
 }
 
 type User

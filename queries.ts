@@ -25,6 +25,7 @@ export const getLocation = /* GraphQL */ `query GetLocation($id: ID!) {
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite
@@ -92,6 +93,7 @@ export const listLocations = /* GraphQL */ `query ListLocations(
       address
       category
       closed
+      cognitoSub
       createdAt
       description
       favorite

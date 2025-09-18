@@ -24,12 +24,9 @@ const App: React.FC = () => {
         {({ user }) => (
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<LunchMapPage />} />
+              <Route path="/" element={<LunchMapPage userId={user?.userId || ""} />} />
               <Route path="/night" element={<NightMapPage />} />
-              <Route
-                path="/settings"
-                element={<UserSettingsPage userId={user?.username || ""} />}
-              />
+              <Route path="/settings" element={<UserSettingsPage userId={user?.userId || ""} />} />
             </Routes>
           </BrowserRouter>
         )}

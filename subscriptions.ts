@@ -34,6 +34,7 @@ export const onCreateLocation = /* GraphQL */ `subscription OnCreateLocation(
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite
@@ -100,6 +101,7 @@ export const onDeleteLocation = /* GraphQL */ `subscription OnDeleteLocation(
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite
@@ -166,6 +168,7 @@ export const onUpdateLocation = /* GraphQL */ `subscription OnUpdateLocation(
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite

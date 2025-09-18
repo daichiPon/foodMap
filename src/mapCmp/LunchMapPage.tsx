@@ -11,7 +11,7 @@ import LunchSearchSideForm from "./Lunch/SearchForm";
 // Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_LUNCH_MAPBOX_TOKEN;
 
-export default function LunchMapPage() {
+export default function LunchMapPage({ userId }: { userId: string }) {
   // ---- Refs ----
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -286,6 +286,7 @@ export default function LunchMapPage() {
           <LunchSideForm
             lat={lat}
             lng={lng}
+            userId={userId}
             onClose={() => setShowForm(false)}
             onRegisterComplete={(newLoc) => setLocations((prev) => [...prev, newLoc])}
           />

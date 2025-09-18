@@ -34,6 +34,7 @@ export const createLocation = /* GraphQL */ `mutation CreateLocation(
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite
@@ -100,6 +101,7 @@ export const deleteLocation = /* GraphQL */ `mutation DeleteLocation(
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite
@@ -166,6 +168,7 @@ export const updateLocation = /* GraphQL */ `mutation UpdateLocation(
     address
     category
     closed
+    cognitoSub
     createdAt
     description
     favorite

@@ -7,6 +7,7 @@ import { uploadData } from "aws-amplify/storage";
 type LunchSideFormProps = {
   lat: number;
   lng: number;
+  userId: string;
   onClose: () => void;
   onRegisterComplete: (newLocation: Schema["Location"]["type"]) => void;
 };
@@ -20,7 +21,8 @@ type HotpepperResponse = {
 };
 
 export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
-  const { lat, lng, onClose, onRegisterComplete } = props;
+  const { lat, lng, userId, onClose, onRegisterComplete } = props;
+  console.log("userid", userId);
 
   const [name, setName] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
@@ -48,7 +50,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   ];
   const priceRanges = ["¥0~¥1000", "¥1000~¥2000", "¥3000~¥4000", "¥4000~¥5000", "¥5000~ ∞ "];
 
-  const client = generateClient<Schema>({ authMode: "identityPool" });
+  const client = generateClient<Schema>({ authMode: "userPool" });
 
   const getAddress = async (lng: number, lat: number) => {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
@@ -115,6 +117,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
         category,
         priceRange,
         imageUrl,
+        cognitoSub: userId,
       });
 
       if (res.errors) {

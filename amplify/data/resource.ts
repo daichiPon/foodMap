@@ -23,6 +23,7 @@ const schema = a.schema({
       hours: a.string(),
       closed: a.string(),
       imageUrl: a.string(),
+      cognitoSub: a.string(),
     })
     .authorization((allow) => [
       allow.owner(),
