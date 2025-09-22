@@ -24,6 +24,7 @@ export default function LunchMapPage({ userId }: { userId: string }) {
   const [showForm, setShowForm] = useState<boolean>(false);
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   //検索用
   const [searchForm, setSearchForm] = useState<boolean>(false);
@@ -170,118 +171,163 @@ export default function LunchMapPage({ userId }: { userId: string }) {
     });
   }, [locations]);
 
+  const iconButton: React.CSSProperties = {
+    background: "transparent",
+    border: "none",
+    fontSize: "22px",
+    cursor: "pointer",
+  };
+
+  const bottomBtn: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
+    color: "#333",
+  };
+
+  const circleIcon: React.CSSProperties = {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "#f2f2f2",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "4px",
+    fontSize: "20px",
+  };
+  const menuItem: React.CSSProperties = {
+    width: "100%",
+    textAlign: "left",
+    padding: "10px 16px",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "15px",
+  };
+
   return (
     <>
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
+          position: "relative",
           height: "100vh",
           width: "100vw",
-          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* Map */}
-        <div ref={mapContainer} style={{ flex: 1 }} />
+        {/* === 地図 === */}
+        <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
 
-        {/* ログアウトボタンをその下に配置 */}
-        <Authenticator>
-          {({ signOut }) => (
-            <button
-              onClick={signOut}
+        {/* === 上部ヘッダー === */}
+        <div
+          style={{
+            position: "absolute",
+            top: 20,
+            left: "5%",
+            right: "5%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 12px",
+            background: "white",
+            borderRadius: "14px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+            zIndex: 3,
+          }}
+        >
+          {/* ハンバーガーボタン */}
+          <button onClick={() => setMenuOpen((o) => !o)} style={iconButton}>
+            ☰
+          </button>
+
+          {/* 検索欄 */}
+          {/* 検索 */}
+          <button style={bottomBtn} onClick={() => setSearchForm(true)}>
+            <div style={circleIcon}>🔍</div>
+            <span>検索</span>
+          </button>
+
+          {/* 右端ボタン（例：ログアウトなど） */}
+          {menuOpen && (
+            <div
               style={{
                 position: "absolute",
-                top: 10,
-                right: 10,
-                zIndex: 2,
-                padding: "8px 12px",
+                top: "60px", // ハンバーガーの下に表示
+                left: "10px",
                 background: "white",
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-                cursor: "pointer",
+                borderRadius: "8px",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                padding: "8px 0",
+                minWidth: "150px",
+                zIndex: 10,
               }}
             >
-              ログアウト
-            </button>
+              <button
+                style={menuItem}
+                onClick={() => {
+                  navigate("/settings");
+                  setMenuOpen(false);
+                }}
+              >
+                ユーザー設定
+              </button>
+
+              <Authenticator>
+                {({ signOut }) => (
+                  <button
+                    style={menuItem}
+                    onClick={() => {
+                      signOut?.();
+                    }}
+                  >
+                    ログアウト
+                  </button>
+                )}
+              </Authenticator>
+            </div>
           )}
-        </Authenticator>
+        </div>
 
-        {/* 現在地に戻るボタン */}
-        <button
-          onClick={moveToCurrentLocation}
+        {/* === 下部ツールバー === */}
+        <div
           style={{
             position: "absolute",
-            top: 55,
-            right: 10,
-            zIndex: 2,
-            padding: "8px 12px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          現在地
-        </button>
-
-        <button
-          onClick={() => navigate("/settings")}
-          style={{
-            position: "absolute",
-            top: 10,
-            left: 10,
-            zIndex: 2,
-            padding: "8px 12px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          ユーザー設定
-        </button>
-
-        {/* 夜のコンポーネントに遷移するボタン */}
-        <button
-          onClick={() => navigate("/night")}
-          style={{
-            position: "absolute",
-            top: 50,
-            left: 10,
-            zIndex: 2,
-            padding: "8px 12px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          夜
-        </button>
-
-        {/* ＋ボタン（フォーム開閉用） */}
-        <button
-          onClick={() => setShowForm(true)}
-          style={{
-            position: "absolute",
-            top: 100,
-            right: 10,
-            zIndex: 2,
-            width: "40px",
-            height: "40px",
-            fontSize: "15px",
-            borderRadius: "40%",
-            background: "#80b0e2ff",
-            border: "none",
-            color: "white",
+            bottom: 30,
+            left: "10%",
+            right: "10%",
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "space-around",
+            alignItems: "center",
+            padding: "10px 0",
+            background: "white",
+            borderRadius: "20px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            zIndex: 3,
           }}
         >
-          ✙
-        </button>
+          {/* 登録 */}
+          <button style={bottomBtn} onClick={() => setShowForm(true)}>
+            <div style={circleIcon}>＋</div>
+            <span>登録</span>
+          </button>
 
-        {/*登録フォーム*/}
+          {/* 検索 */}
+          <button style={bottomBtn} onClick={() => navigate("/night")}>
+            <div style={circleIcon}>👤</div>
+            <span>自分</span>
+          </button>
+
+          {/* 現在地 */}
+          <button style={bottomBtn} onClick={moveToCurrentLocation}>
+            <div style={circleIcon}>▲</div>
+            <span>現在地</span>
+          </button>
+        </div>
         {showForm && (
           <LunchSideForm
             lat={lat}
@@ -292,26 +338,6 @@ export default function LunchMapPage({ userId }: { userId: string }) {
           />
         )}
 
-        <button
-          onClick={() => setSearchForm(true)}
-          style={{
-            position: "absolute",
-            top: 150,
-            right: 10,
-            zIndex: 2,
-            fontSize: "15px",
-            width: "40px",
-            height: "40px",
-            borderRadius: "40%",
-            background: "#80b0e2ff",
-            border: "none",
-            color: "white",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          🔍
-        </button>
         {searchForm && (
           <LunchSearchSideForm
             onClose={() => setSearchForm(false)}
