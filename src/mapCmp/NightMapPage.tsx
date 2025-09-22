@@ -5,11 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
+import { LunchSideForm } from "./Lunch/SideForm";
+import LunchSearchSideForm from "./Lunch/SearchForm";
 
 // Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_NIGHT_MAPBOX_TOKEN;
 
-export default function NightMapPage() {
+export default function NightMapPage({ userId }: { userId: string }) {
   // ---- Refs ----
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -17,22 +19,27 @@ export default function NightMapPage() {
   const savedMarkersRef = useRef<mapboxgl.Marker[]>([]); // 登録済みマーカーを保持
 
   // ---- State ----
-  const [name, setName] = useState<string>("現在地");
-  const [desc, setDesc] = useState<string>("現在の地点");
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
+  const [lat, setLat] = useState<number>(35.6895);
+  const [lng, setLng] = useState<number>(139.6917);
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [address, setAddress] = useState<string>("");
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  //検索用
+  const [searchForm, setSearchForm] = useState<boolean>(false);
+  const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
   const navigate = useNavigate();
 
+  console.log(displayLocations);
   /** 登録済み地点を取得 */
   const fetchLocations = async () => {
+    console.log("userid", userId);
     try {
-      const res = await client.models.Location.list();
+      const res = await client.models.Location.list({ filter: { cognitoSub: { eq: userId } } });
+      console.log("res", res);
       setLocations(res.data || []);
     } catch (err) {
       console.error("地点取得エラー:", err);
@@ -100,6 +107,7 @@ export default function NightMapPage() {
   }, []);
 
   /** 登録済み地点を地図に描画 */
+  /** 登録済み地点 or 検索結果を地図に描画 */
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -107,20 +115,24 @@ export default function NightMapPage() {
     savedMarkersRef.current.forEach((m) => m.remove());
     savedMarkersRef.current = [];
 
-    locations.forEach((loc) => {
+    // 検索結果があるならそれを優先
+    const targets = displayLocations.length > 0 ? displayLocations : locations;
+
+    targets.forEach((loc) => {
       if (loc.latitude != null && loc.longitude != null) {
         const m = new mapboxgl.Marker({ color: "red" })
           .setLngLat([loc.longitude, loc.latitude])
-          .setPopup(
-            new mapboxgl.Popup({ offset: 25 }).setText(
-              `${loc.name || ""}\n${loc.description || ""}`
-            )
-          )
           .addTo(mapRef.current!);
+
+        // タップ・クリックでボトムシートを開く
+        m.getElement().addEventListener("click", () => {
+          setSelectedLocation(loc);
+        });
+
         savedMarkersRef.current.push(m);
       }
     });
-  }, [locations]);
+  }, [locations, displayLocations]);
 
   /** 現在地に戻る */
   const moveToCurrentLocation = () => {
@@ -160,190 +172,204 @@ export default function NightMapPage() {
       }
     });
   }, [locations]);
-  
 
-  /** 地点登録 */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (lat == null || lng == null){
-       return
-      }else{
-      const addr = await getAddress(lng, lat);
-      console.log(addr)
-      setAddress(addr);
-    }
-      try {
-        const res = await client.models.Location.create({
-          name,
-          description: desc || undefined,
-          latitude: lat,
-          longitude: lng,
-          address: address,
-        });
-          if (res.errors) {
-            alert("登録失敗: " + JSON.stringify(res.errors));
-            return;
-          }
-        alert("登録しました！");
-        setName("");
-        setDesc("");
-        setAddress("");
-        fetchLocations(); // 更新
-        setShowForm(false);
-      } catch (err) {
-        console.error("登録エラー:", err);
-      }
+  const iconButton: React.CSSProperties = {
+    background: "transparent",
+    border: "none",
+    fontSize: "22px",
+    cursor: "pointer",
   };
 
-      const getAddress = async (lng: number, lat: number) => {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
-      const res = await fetch(url);
-      const data = await res.json();
+  const bottomBtn: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
+    color: "#333",
+  };
 
-      return data.features[0]?.place_name || "住所が見つかりません";
-    };
+  const circleIcon: React.CSSProperties = {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "#f2f2f2",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "4px",
+    fontSize: "20px",
+  };
+  const menuItem: React.CSSProperties = {
+    width: "100%",
+    textAlign: "left",
+    padding: "10px 16px",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "15px",
+  };
 
   return (
     <>
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
+          position: "relative",
           height: "100vh",
           width: "100vw",
-          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* Map */}
-        <div ref={mapContainer} style={{ flex: 1 }} />
+        {/* === 地図 === */}
+        <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
 
-        {/* ログアウトボタンをその下に配置 */}
-        <Authenticator>
-          {({ signOut }) => (
-            <button
-              onClick={signOut}
+        {/* === 上部ヘッダー === */}
+        <div
+          style={{
+            position: "absolute",
+            top: 20,
+            left: "5%",
+            right: "5%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 12px",
+            background: "white",
+            borderRadius: "14px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+            zIndex: 3,
+          }}
+        >
+          {/* ハンバーガーボタン */}
+          <button onClick={() => setMenuOpen((o) => !o)} style={iconButton}>
+            ☰
+          </button>
+
+          {/* 検索欄 */}
+          {/* 検索 */}
+          <button style={bottomBtn} onClick={() => setSearchForm(true)}>
+            <div style={circleIcon}>🔍</div>
+            <span>検索</span>
+          </button>
+
+          {/* 右端ボタン（例：ログアウトなど） */}
+          {menuOpen && (
+            <div
               style={{
                 position: "absolute",
-                top: 10, 
-                right: 10,
-                zIndex: 2,
-                padding: "8px 12px",
+                top: "60px", // ハンバーガーの下に表示
+                left: "10px",
                 background: "white",
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-                cursor: "pointer",
+                borderRadius: "8px",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                padding: "8px 0",
+                minWidth: "150px",
+                zIndex: 10,
               }}
             >
-              ログアウト
-            </button>
+              <button
+                style={menuItem}
+                onClick={() => {
+                  navigate("/settings");
+                  setMenuOpen(false);
+                }}
+              >
+                ユーザー設定
+              </button>
+
+              <Authenticator>
+                {({ signOut }) => (
+                  <button
+                    style={menuItem}
+                    onClick={() => {
+                      signOut?.();
+                    }}
+                  >
+                    ログアウト
+                  </button>
+                )}
+              </Authenticator>
+            </div>
           )}
-        </Authenticator>
+        </div>
 
-        {/* 現在地に戻るボタン */}
-        <button
-          onClick={moveToCurrentLocation}
+        {/* === 下部ツールバー === */}
+        <div
           style={{
             position: "absolute",
-            top: 55,
-            right: 10,
-            zIndex: 2,
-            padding: "8px 12px",
+            bottom: 30,
+            left: "10%",
+            right: "10%",
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+            padding: "10px 0",
             background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            cursor: "pointer",
+            borderRadius: "20px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            zIndex: 3,
           }}
         >
-          現在地
-        </button>
+          {/* 登録 */}
+          <button style={bottomBtn} onClick={() => setShowForm(true)}>
+            <div style={circleIcon}>＋</div>
+            <span>登録</span>
+          </button>
 
-        {/* 昼のコンポーネントに遷移するボタン */}
-        <button
-          onClick={()=> navigate("/")}
-          style={{
-            position: "absolute",
-            top: 50,
-            left: 10,
-            zIndex: 2,
-            padding: "8px 12px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          昼
-        </button>
+          {/* 検索 */}
+          <button style={bottomBtn} onClick={() => navigate("/")}>
+            <div style={circleIcon}>👥</div>
+            <span>みんな</span>
+          </button>
 
-         {/* ＋ボタン（フォーム開閉用） */}
-        <button
-          onClick={() =>setShowForm(true)}
-          style={{
-            position: "absolute",
-            top: 100,
-            right: 10,
-            zIndex: 2,
-            width: "40px",
-            height: "40px",
-            borderRadius: "40%",
-            background: "#007bff",
-            color: "white",
-            fontSize: "10px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          ✙
-        </button>
-
-        {/* サイドフォーム（右側にスライドイン） */}
+          {/* 現在地 */}
+          <button style={bottomBtn} onClick={moveToCurrentLocation}>
+            <div style={circleIcon}>▲</div>
+            <span>現在地</span>
+          </button>
+        </div>
         {showForm && (
-          <div
+          <LunchSideForm
+            lat={lat}
+            lng={lng}
+            userId={userId}
+            onClose={() => setShowForm(false)}
+            onRegisterComplete={(newLoc) => setLocations((prev) => [...prev, newLoc])}
+          />
+        )}
+
+        {searchForm && (
+          <LunchSearchSideForm
+            onClose={() => setSearchForm(false)}
+            onSearchResult={(searchResult) => {
+              setDisplayLocations(searchResult); // 検索結果のみ描画
+            }}
+          />
+        )}
+
+        {/* 全体表示に戻すボタン */}
+        {displayLocations.length > 0 && (
+          <button
+            onClick={() => setDisplayLocations([])}
             style={{
               position: "absolute",
-              top: 0,
-              right: 0,
-              width: "300px",
-              height: "100%",
-              background: "white",
-              boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
-              padding: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              zIndex: 3,
+              top: 200,
+              right: 15,
+              zIndex: 2,
+              padding: "8px 12px",
+              background: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
             }}
           >
-            {/* 閉じるボタン */}
-            <button
-              onClick={() => setShowForm(false)}
-              style={{
-                alignSelf: "flex-end",
-                border: "none",
-                background: "transparent",
-                fontSize: "20px",
-                cursor: "pointer",
-              }}
-            >
-            ×
-            </button>
-
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <input
-                placeholder="地点名"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <input
-                placeholder="説明"
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-              />
-              <button type="submit">登録</button>
-            </form>
-          </div>
+            全体表示
+          </button>
         )}
+
         {selectedLocation && (
           <div
             style={{
@@ -352,6 +378,8 @@ export default function NightMapPage() {
               left: 0,
               width: "100%",
               background: "white",
+              maxHeight: "50%",
+              overflowY: "auto",
               borderTopLeftRadius: "16px",
               borderTopRightRadius: "16px",
               boxShadow: "0 -2px 8px rgba(0,0,0,0.2)",
@@ -360,16 +388,38 @@ export default function NightMapPage() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2 style={{ fontWeight: "bold" }}>{selectedLocation.name || "無名地点"}</h2>
+              <h2 style={{ fontWeight: "bold", color: "#000" }}>
+                {selectedLocation.name || "無名地点"}{" "}
+              </h2>
               <button
-                style={{ fontSize: "20px", background: "transparent", border: "none", cursor: "pointer" }}
+                style={{
+                  fontSize: "20px",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                }}
                 onClick={() => setSelectedLocation(null)}
               >
                 ✕
               </button>
             </div>
-            <p style={{ marginTop: "8px" }}>{selectedLocation.description}</p>
-            <p style={{ marginTop: "4px", color: "#555" }}>{selectedLocation.address}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.category}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.priceRange}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.description}</p>
+            <p style={{ marginTop: "3px", color: "#000" }}>{selectedLocation.address}</p>
+            {selectedLocation.imageUrl && (
+              <img
+                src={selectedLocation.imageUrl}
+                alt={selectedLocation.name || "登録画像"}
+                style={{
+                  marginTop: "10px",
+                  width: "90%",
+                  maxHeight: "200px",
+                  borderRadius: "10px",
+                  objectFit: "cover",
+                }}
+              />
+            )}
           </div>
         )}
       </div>
