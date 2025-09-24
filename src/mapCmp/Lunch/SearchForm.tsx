@@ -5,14 +5,16 @@ import type { Schema } from "../../../amplify/data/resource";
 type Props = {
   onSearchResult: (data: Schema["Location"]["type"][]) => void;
   onClose: () => void;
+  onValuesChange: (value: string) => void;
 };
 type User = Schema["User"]["type"];
 
-export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) {
+export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesChange }: Props) {
   const [category, setCategory] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedUserName, setSelectedUserName] = useState("");
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
 
@@ -43,9 +45,9 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
     if (priceRange) {
       filters.push({ priceRange: { eq: priceRange } });
     }
-    console.log(selectedUser);
-    if (selectedUser) {
-      filters.push({ cognitoSub: { eq: selectedUser } });
+    console.log(selectedUserId);
+    if (selectedUserId) {
+      filters.push({ cognitoSub: { eq: selectedUserId } });
     }
 
     const res = await client.models.Location.list({
@@ -82,6 +84,11 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const searchText = category + priceRange + selectedUserName;
+    onValuesChange(searchText);
+  }, [category, priceRange, selectedUserId, onValuesChange]);
 
   const inputStyle: React.CSSProperties = {
     padding: "10px 12px",
@@ -179,8 +186,14 @@ export default function LunchSearchSideForm({ onSearchResult, onClose }: Props) 
       </select>
 
       <select
-        value={selectedUser}
-        onChange={(e) => setSelectedUser(e.currentTarget.value)}
+        value={selectedUserId}
+        onChange={(e) => {
+          const id = e.currentTarget.value;
+          setSelectedUserId(id);
+
+          const u = users.find((u) => u.id === id);
+          setSelectedUserName(u?.username ?? "");
+        }}
         required
         style={selectStyle}
         onFocus={(e) => (e.currentTarget.style.borderColor = "#87CEFA")}
