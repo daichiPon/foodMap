@@ -3,6 +3,7 @@ import mapboxgl from "mapbox-gl";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../../amplify/data/resource";
 import { uploadData } from "aws-amplify/storage";
+import { v4 as uuidv4 } from "uuid";
 
 type LunchSideFormProps = {
   lat: number;
@@ -72,6 +73,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   };
 
   const selectPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("event", event.target.files);
     setFile(event.target.files?.[0] ?? null);
   };
 
@@ -97,15 +99,19 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
       let imageUrl: string | undefined = undefined;
 
       if (file) {
+        const uniqueId = uuidv4(); // ← 1回だけ生成
+        const key = `public/picture-submissions/${uniqueId}-${file.name}`;
+        console.log("file", file);
         await uploadData({
-          path: `public/picture-submissions/${file.name}`,
+          path: key,
           data: file,
           options: { contentType: file.type },
         });
 
         const region = "ap-northeast-1";
         const bucketName = "amplify-foodmap-nakamotod-amplifyteamdrivebucket28-aezexjijypb3";
-        imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/public/picture-submissions/${file.name}`;
+        imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+        console.log("imageUrl", imageUrl);
       }
 
       const res = await client.models.Location.create({

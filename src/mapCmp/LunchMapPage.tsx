@@ -266,6 +266,10 @@ export default function LunchMapPage({ userId }: { userId: string }) {
                 zIndex: 10,
               }}
             >
+              <button style={bottomBtn} onClick={() => setSearchForm(true)}>
+                <span>検索</span>
+              </button>
+
               <button
                 style={menuItem}
                 onClick={() => {
@@ -274,9 +278,6 @@ export default function LunchMapPage({ userId }: { userId: string }) {
                 }}
               >
                 ユーザー設定
-              </button>
-              <button style={bottomBtn} onClick={() => setSearchForm(true)}>
-                <span>検索</span>
               </button>
 
               <Authenticator>
