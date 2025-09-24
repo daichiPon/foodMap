@@ -19,8 +19,8 @@ export default function LunchMapPage({ userId }: { userId: string }) {
   const savedMarkersRef = useRef<mapboxgl.Marker[]>([]); // 登録済みマーカーを保持
 
   // ---- State ----
-  const [lat, setLat] = useState<number>(35.6895);
-  const [lng, setLng] = useState<number>(139.6917);
+  const [lat, setLat] = useState<number>(34.702331);
+  const [lng, setLng] = useState<number>(135.496025);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
@@ -63,8 +63,8 @@ export default function LunchMapPage({ userId }: { userId: string }) {
       },
       (err) => {
         console.error("位置情報取得エラー:", err);
-        setLat(35.6895); // 東京駅 fallback
-        setLng(139.6917);
+        setLat(34.702331); // 東京駅 fallback
+        setLng(135.496025);
       },
       { enableHighAccuracy: true }
     );
@@ -77,14 +77,14 @@ export default function LunchMapPage({ userId }: { userId: string }) {
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [lng ?? 139.6917, lat ?? 35.6895],
+      center: [lng ?? 135.496025, lat ?? 34.702331],
       zoom: 12,
     });
     mapRef.current = map;
 
     // 現在地マーカー
     const marker = new mapboxgl.Marker({ draggable: true })
-      .setLngLat([lng ?? 139.6917, lat ?? 35.6895])
+      .setLngLat([lng ?? 135.496025, lat ?? 34.702331])
       .addTo(map);
     currentMarkerRef.current = marker;
 
