@@ -29,6 +29,7 @@ export default function NightMapPage({ userId }: { userId: string }) {
   //検索用
   const [searchForm, setSearchForm] = useState<boolean>(false);
   const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
+  const [searchValues, setSearchValues] = useState<string>();
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
   const navigate = useNavigate();
@@ -173,6 +174,10 @@ export default function NightMapPage({ userId }: { userId: string }) {
     });
   }, [locations]);
 
+  const handleSearchChange = (values: string) => {
+    setSearchValues(values);
+  };
+
   const iconButton: React.CSSProperties = {
     background: "transparent",
     border: "none",
@@ -236,22 +241,16 @@ export default function NightMapPage({ userId }: { userId: string }) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "8px 12px",
-            background: "white",
+            background: "rgba(255, 255, 255, 0.4)",
             borderRadius: "14px",
             boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+            backdropFilter: "blur(8px)",
             zIndex: 3,
           }}
         >
           {/* ハンバーガーボタン */}
           <button onClick={() => setMenuOpen((o) => !o)} style={iconButton}>
             ☰
-          </button>
-
-          {/* 検索欄 */}
-          {/* 検索 */}
-          <button style={bottomBtn} onClick={() => setSearchForm(true)}>
-            <div style={circleIcon}>🔍</div>
-            <span>検索</span>
           </button>
 
           {/* 右端ボタン（例：ログアウトなど） */}
@@ -269,6 +268,10 @@ export default function NightMapPage({ userId }: { userId: string }) {
                 zIndex: 10,
               }}
             >
+              <button style={bottomBtn} onClick={() => setSearchForm(true)}>
+                <span>検索</span>
+              </button>
+
               <button
                 style={menuItem}
                 onClick={() => {
@@ -293,6 +296,22 @@ export default function NightMapPage({ userId }: { userId: string }) {
               </Authenticator>
             </div>
           )}
+          <pre>{displayLocations.length > 0 && searchValues}</pre>
+          {/* 全体表示に戻すボタン */}
+          {displayLocations.length > 0 && (
+            <button
+              onClick={() => setDisplayLocations([])}
+              style={{
+                background: "#28a745",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              全体表示
+            </button>
+          )}
         </div>
 
         {/* === 下部ツールバー === */}
@@ -306,9 +325,10 @@ export default function NightMapPage({ userId }: { userId: string }) {
             justifyContent: "space-around",
             alignItems: "center",
             padding: "10px 0",
-            background: "white",
+            background: "rgba(255, 255, 255, 0.4)",
             borderRadius: "20px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            backdropFilter: "blur(8px)",
             zIndex: 3,
           }}
         >
@@ -343,31 +363,11 @@ export default function NightMapPage({ userId }: { userId: string }) {
         {searchForm && (
           <LunchSearchSideForm
             onClose={() => setSearchForm(false)}
+            onValuesChange={handleSearchChange}
             onSearchResult={(searchResult) => {
               setDisplayLocations(searchResult); // 検索結果のみ描画
             }}
           />
-        )}
-
-        {/* 全体表示に戻すボタン */}
-        {displayLocations.length > 0 && (
-          <button
-            onClick={() => setDisplayLocations([])}
-            style={{
-              position: "absolute",
-              top: 200,
-              right: 15,
-              zIndex: 2,
-              padding: "8px 12px",
-              background: "#28a745",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            全体表示
-          </button>
         )}
 
         {selectedLocation && (
