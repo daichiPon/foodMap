@@ -156,7 +156,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
     padding: "10px 12px",
     borderRadius: "8px",
     border: "1px solid #ccc",
-    fontSize: "14px",
+    fontSize: "16px",
     outline: "none",
     transition: "border-color 0.2s",
   };
@@ -173,7 +173,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
     border: "none",
     padding: "10px 16px",
     borderRadius: "8px",
-    fontSize: "14px",
+    fontSize: "16px",
     cursor: "pointer",
     transition: "background-color 0.2s",
   };
