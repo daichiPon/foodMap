@@ -49,3 +49,5 @@ React + TypeScript + Vite で作成した Webアプリ(PWA化)です。
 
    これで TypeScript 型も更新され、`client.models.Location.list()` で Locationフィールド が取得できるようになる
 
+# 今後の発展
+* SNSのようにしていきたい
