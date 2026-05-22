@@ -8,8 +8,9 @@ import type { Schema } from "../../amplify/data/resource";
 import { LunchSideForm } from "./Lunch/SideForm";
 import LunchSearchSideForm from "./Lunch/SearchForm";
 
-// Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_NIGHT_MAPBOX_TOKEN;
+
+const client = generateClient<Schema>({ authMode: "identityPool" });
 
 export default function NightMapPage({ userId }: { userId: string }) {
   // ---- Refs ----
@@ -31,17 +32,13 @@ export default function NightMapPage({ userId }: { userId: string }) {
   const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
   const [searchValues, setSearchValues] = useState<string>();
 
-  const client = generateClient<Schema>({ authMode: "identityPool" });
   const navigate = useNavigate();
   const { signOut } = useAuthenticator();
 
-  console.log(displayLocations);
   /** 登録済み地点を取得 */
   const fetchLocations = async () => {
-    console.log("userid", userId);
     try {
       const res = await client.models.Location.list({ filter: { cognitoSub: { eq: userId } } });
-      console.log("res", res);
       setLocations(res.data || []);
     } catch (err) {
       console.error("地点取得エラー:", err);
@@ -65,8 +62,7 @@ export default function NightMapPage({ userId }: { userId: string }) {
         setLng(pos.coords.longitude);
       },
       (err) => {
-        console.error("位置情報取得エラー:", err);
-        setLat(35.6895); // 東京駅 fallback
+        setLat(35.6895);
         setLng(139.6917);
       },
       { enableHighAccuracy: true }
@@ -265,7 +261,6 @@ export default function NightMapPage({ userId }: { userId: string }) {
               </button>
             </div>
           )}
-          <pre>{displayLocations.length > 0 && searchValues}</pre>
           {/* 全体表示に戻すボタン */}
           {displayLocations.length > 0 && (
             <button

@@ -15,10 +15,8 @@ export interface UserType {
 }
 
 export const fetchUser = async (userId: string): Promise<UserType | null> => {
-  console.log("userId", userId);
   try {
     const res = await client.models.User.get({ id: userId });
-    console.log("res", res);
     if (!res.data) return null;
     return res.data;
   } catch (err) {

@@ -5,6 +5,8 @@ import type { Schema } from "../../../amplify/data/resource";
 import { uploadData } from "aws-amplify/storage";
 import { v4 as uuidv4 } from "uuid";
 
+const client = generateClient<Schema>({ authMode: "userPool" });
+
 type LunchSideFormProps = {
   lat: number;
   lng: number;
@@ -23,7 +25,6 @@ type HotpepperResponse = {
 
 export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   const { lat, lng, userId, onClose, onRegisterComplete } = props;
-  console.log("userid", userId);
 
   const [name, setName] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
@@ -31,8 +32,6 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   const [priceRange, setPriceRange] = useState<string>("");
   const [shops, setShops] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
-
-  console.log("shops", shops);
 
   const categories = [
     "大衆居酒屋",
@@ -51,8 +50,6 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   ];
   const priceRanges = ["¥0~¥1000", "¥1000~¥2000", "¥3000~¥4000", "¥4000~¥5000", "¥5000~ ∞ "];
 
-  const client = generateClient<Schema>({ authMode: "userPool" });
-
   const getAddress = async (lng: number, lat: number) => {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=ja`;
     const res = await fetch(url);
@@ -64,7 +61,6 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
     const res = await fetch(
       `https://3ue7ia4aa9.execute-api.ap-northeast-1.amazonaws.com/dev/items?lat=${lat}&lng=${lng}`
     );
-    console.log("res", JSON.stringify(res));
 
     if (!res.ok) throw new Error("Failed to fetch");
 
@@ -73,7 +69,6 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
   };
 
   const selectPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("event", event.target.files);
     setFile(event.target.files?.[0] ?? null);
   };
 
@@ -83,7 +78,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
         const shopNames = data.results.shop.map((s: { name: string }) => s.name);
         setShops(shopNames);
       })
-      .catch(console.error);
+      .catch((err) => console.error("店舗情報取得エラー:", err));
   }, [lat, lng]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,9 +94,8 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
       let imageUrl: string | undefined = undefined;
 
       if (file) {
-        const uniqueId = uuidv4(); // ← 1回だけ生成
+        const uniqueId = uuidv4();
         const key = `public/picture-submissions/${uniqueId}-${file.name}`;
-        console.log("file", file);
         await uploadData({
           path: key,
           data: file,
@@ -111,7 +105,6 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
         const region = "ap-northeast-1";
         const bucketName = "amplify-foodmap-nakamotod-amplifyteamdrivebucket28-aezexjijypb3";
         imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
-        console.log("imageUrl", imageUrl);
       }
 
       const res = await client.models.Location.create({

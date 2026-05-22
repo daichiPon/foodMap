@@ -1,24 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
-import { fetchUser } from "../../api/user";
+import { fetchUser, type UserType } from "../../api/user";
 import type { Schema } from "../../../amplify/data/resource";
 
-type User = {
-  id: string;
-  cognitoSub: string | null;
-  email: string;
-  username: string;
-  profileImage: string | null;
-  owner: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+const client = generateClient<Schema>({ authMode: "userPool" });
 
 export default function UserSettingsPage({ userId }: { userId: string }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const client = generateClient<Schema>({ authMode: "userPool" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,15 +17,7 @@ export default function UserSettingsPage({ userId }: { userId: string }) {
     });
   }, [userId]);
 
-  const updateUser = async (user: {
-    id: string;
-    email: string;
-    username: string;
-    cognitoSub: string | null;
-    profileImage: string | null;
-    owner: string | null;
-  }) => {
-    console.log("保存");
+  const updateUser = async (user: UserType) => {
     try {
       const res = await client.models.User.update({
         id: user.id,
@@ -45,7 +27,6 @@ export default function UserSettingsPage({ userId }: { userId: string }) {
         profileImage: user.profileImage || "",
         owner: user.owner,
       });
-      console.log("res", res);
       return res.data;
     } catch (err) {
       console.error("ユーザー更新エラー:", err);
@@ -114,7 +95,6 @@ export default function UserSettingsPage({ userId }: { userId: string }) {
 
         <button
           onClick={async () => {
-            console.log("クリック");
             setIsSaving(true);
             try {
               await updateUser(user);

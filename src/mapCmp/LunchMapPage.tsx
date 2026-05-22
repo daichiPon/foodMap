@@ -8,8 +8,9 @@ import type { Schema } from "../../amplify/data/resource";
 import { LunchSideForm } from "./Lunch/SideForm";
 import LunchSearchSideForm from "./Lunch/SearchForm";
 
-// Mapbox アクセストークン
 mapboxgl.accessToken = import.meta.env.VITE_LUNCH_MAPBOX_TOKEN;
+
+const client = generateClient<Schema>({ authMode: "identityPool" });
 
 export default function LunchMapPage({ userId }: { userId: string }) {
   // ---- Refs ----
@@ -31,11 +32,8 @@ export default function LunchMapPage({ userId }: { userId: string }) {
   const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
   const [searchValues, setSearchValues] = useState<string>();
 
-  const client = generateClient<Schema>({ authMode: "identityPool" });
   const navigate = useNavigate();
   const { signOut } = useAuthenticator();
-
-  console.log(displayLocations);
   /** 登録済み地点を取得 */
   const fetchLocations = async () => {
     try {
@@ -63,8 +61,7 @@ export default function LunchMapPage({ userId }: { userId: string }) {
         setLng(pos.coords.longitude);
       },
       (err) => {
-        console.error("位置情報取得エラー:", err);
-        setLat(34.702331); // 東京駅 fallback
+        setLat(34.702331);
         setLng(135.496025);
       },
       { enableHighAccuracy: true }
@@ -263,7 +260,6 @@ export default function LunchMapPage({ userId }: { userId: string }) {
               </button>
             </div>
           )}
-          <pre>{displayLocations.length > 0 && searchValues}</pre>
           {/* 全体表示に戻すボタン */}
           {displayLocations.length > 0 && (
             <button

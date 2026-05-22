@@ -8,6 +8,13 @@ type Props = {
   onValuesChange: (value: string) => void;
 };
 type User = Schema["User"]["type"];
+type LocationFilter = {
+  category?: { eq: string };
+  priceRange?: { eq: string };
+  cognitoSub?: { eq: string };
+};
+
+const client = generateClient<Schema>({ authMode: "identityPool" });
 
 export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesChange }: Props) {
   const [category, setCategory] = useState("");
@@ -15,8 +22,6 @@ export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesC
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedUserName, setSelectedUserName] = useState("");
-
-  const client = generateClient<Schema>({ authMode: "identityPool" });
 
   const categories = [
     "大衆居酒屋",
@@ -36,16 +41,14 @@ export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesC
   const priceRanges = ["¥0~¥1000", "¥1000~¥2000", "¥3000~¥4000", "¥4000~¥5000", "¥5000~ ∞ "];
 
   const handleSearch = async () => {
-    const filters: any[] = [];
+    const filters: LocationFilter[] = [];
 
-    // 入力があれば filter に追加
     if (category) {
       filters.push({ category: { eq: category } });
     }
     if (priceRange) {
       filters.push({ priceRange: { eq: priceRange } });
     }
-    console.log(selectedUserId);
     if (selectedUserId) {
       filters.push({ cognitoSub: { eq: selectedUserId } });
     }
@@ -53,22 +56,20 @@ export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesC
     const res = await client.models.Location.list({
       filter:
         filters.length > 1
-          ? { and: filters } // 両方入力されていたら and 検索
+          ? { and: filters }
           : filters.length === 1
-            ? filters[0] // 片方だけならその条件
-            : undefined, // 両方空なら全件取得
+            ? filters[0]
+            : undefined,
     });
 
     onClose();
     onSearchResult(res.data);
   };
-  console.log("user", users);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await client.models.User.list();
-        console.log("res", res);
         setUsers(res.data);
 
         let next = res.nextToken;
