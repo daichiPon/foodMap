@@ -103,7 +103,7 @@ export const LunchSideForm: React.FC<LunchSideFormProps> = (props) => {
         });
 
         const region = "ap-northeast-1";
-        const bucketName = "amplify-foodmap-nakamotod-amplifyteamdrivebucket28-aezexjijypb3";
+        const bucketName = import.meta.env.VITE_S3_BUCKET_NAME as string;
         imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
       }
 
