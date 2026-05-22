@@ -3,7 +3,7 @@ import mapboxgl from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
-import { Authenticator } from "@aws-amplify/ui-react";
+import { useAuthenticator } from "@aws-amplify/ui-react";
 import type { Schema } from "../../amplify/data/resource";
 import { LunchSideForm } from "./Lunch/SideForm";
 import LunchSearchSideForm from "./Lunch/SearchForm";
@@ -33,6 +33,7 @@ export default function LunchMapPage({ userId }: { userId: string }) {
 
   const client = generateClient<Schema>({ authMode: "identityPool" });
   const navigate = useNavigate();
+  const { signOut } = useAuthenticator();
 
   console.log(displayLocations);
   /** 登録済み地点を取得 */
@@ -105,16 +106,13 @@ export default function LunchMapPage({ userId }: { userId: string }) {
     return () => map.remove();
   }, []);
 
-  /** 登録済み地点を地図に描画 */
   /** 登録済み地点 or 検索結果を地図に描画 */
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // 古いマーカーを削除
     savedMarkersRef.current.forEach((m) => m.remove());
     savedMarkersRef.current = [];
 
-    // 検索結果があるならそれを優先
     const targets = displayLocations.length > 0 ? displayLocations : locations;
 
     targets.forEach((loc) => {
@@ -123,7 +121,6 @@ export default function LunchMapPage({ userId }: { userId: string }) {
           .setLngLat([loc.longitude, loc.latitude])
           .addTo(mapRef.current!);
 
-        // タップ・クリックでボトムシートを開く
         m.getElement().addEventListener("click", () => {
           setSelectedLocation(loc);
         });
@@ -149,28 +146,6 @@ export default function LunchMapPage({ userId }: { userId: string }) {
       { enableHighAccuracy: true }
     );
   };
-
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    savedMarkersRef.current.forEach((m) => m.remove());
-    savedMarkersRef.current = [];
-
-    locations.forEach((loc) => {
-      if (loc.latitude != null && loc.longitude != null) {
-        const m = new mapboxgl.Marker({ color: "red" })
-          .setLngLat([loc.longitude, loc.latitude])
-          .addTo(mapRef.current!);
-
-        // タップ・クリックでボトムシートを開く
-        m.getElement().addEventListener("click", () => {
-          setSelectedLocation(loc);
-        });
-
-        savedMarkersRef.current.push(m);
-      }
-    });
-  }, [locations]);
 
   const handleSearchChange = (values: string) => {
     setSearchValues(values);
@@ -280,18 +255,12 @@ export default function LunchMapPage({ userId }: { userId: string }) {
                 ユーザー設定
               </button>
 
-              <Authenticator>
-                {({ signOut }) => (
-                  <button
-                    style={menuItem}
-                    onClick={() => {
-                      signOut?.();
-                    }}
-                  >
-                    ログアウト
-                  </button>
-                )}
-              </Authenticator>
+              <button
+                style={menuItem}
+                onClick={() => signOut()}
+              >
+                ログアウト
+              </button>
             </div>
           )}
           <pre>{displayLocations.length > 0 && searchValues}</pre>
