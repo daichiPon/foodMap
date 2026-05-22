@@ -1,109 +1,128 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { mapStyles } from "../mapStyles";
+import type React from "react";
 
 type Props = {
-  menuOpen: boolean;
-  onMenuToggle: () => void;
-  onMenuClose: () => void;
   onSearchOpen: () => void;
   hasSearchFilter: boolean;
   onClearSearch: () => void;
 };
 
-export default function MapHeader({
-  menuOpen,
-  onMenuToggle,
-  onMenuClose,
-  onSearchOpen,
-  hasSearchFilter,
-  onClearSearch,
-}: Props) {
+export default function MapHeader({ onSearchOpen, hasSearchFilter, onClearSearch }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { signOut } = useAuthenticator();
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 20,
-        left: "5%",
-        right: "5%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "8px 12px",
-        background: "rgba(255, 255, 255, 0.4)",
-        borderRadius: "14px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-        backdropFilter: "blur(8px)",
-        zIndex: 3,
-      }}
-    >
-      <button onClick={onMenuToggle} style={mapStyles.iconButton}>
-        ☰
-      </button>
+    <>
+      {/* 全体表示ピル（フィルター中のみ） */}
+      {hasSearchFilter && (
+        <button
+          onClick={onClearSearch}
+          style={{
+            position: "absolute",
+            top: "calc(16px + env(safe-area-inset-top, 0px))",
+            left: 16,
+            zIndex: 4,
+            background: "white",
+            border: "none",
+            borderRadius: 20,
+            padding: "8px 14px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#333",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            cursor: "pointer",
+          }}
+        >
+          ✕ 全体表示
+        </button>
+      )}
 
+      {/* 右上フローティングボタン群 */}
+      <div
+        style={{
+          position: "absolute",
+          top: "calc(16px + env(safe-area-inset-top, 0px))",
+          right: 16,
+          zIndex: 4,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        }}
+      >
+        <button onClick={onSearchOpen} style={floatBtn}>
+          🔍
+        </button>
+        <button onClick={() => setMenuOpen((o) => !o)} style={floatBtn}>
+          👤
+        </button>
+      </div>
+
+      {/* メニュー背景オーバーレイ */}
+      {menuOpen && (
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{ position: "absolute", inset: 0, zIndex: 9 }}
+        />
+      )}
+
+      {/* ドロップダウンメニュー */}
       {menuOpen && (
         <div
           style={{
             position: "absolute",
-            top: "60px",
-            left: "10px",
+            top: "calc(108px + env(safe-area-inset-top, 0px))",
+            right: 16,
             background: "white",
-            borderRadius: "8px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-            padding: "8px 0",
-            minWidth: "150px",
+            borderRadius: 12,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+            overflow: "hidden",
             zIndex: 10,
+            minWidth: 160,
           }}
         >
           <button
-            style={mapStyles.bottomBtn}
-            onClick={() => {
-              onSearchOpen();
-              onMenuClose();
-            }}
+            style={menuItemStyle}
+            onClick={() => { navigate("/settings"); setMenuOpen(false); }}
           >
-            <span>検索</span>
+            ⚙️ ユーザー設定
           </button>
-
+          <div style={{ height: 1, background: "#f0f0f0" }} />
           <button
-            style={mapStyles.menuItem}
-            onClick={() => {
-              navigate("/settings");
-              onMenuClose();
-            }}
-          >
-            ユーザー設定
-          </button>
-
-          <button
-            style={mapStyles.menuItem}
-            onClick={() => {
-              signOut();
-              onMenuClose();
-            }}
+            style={{ ...menuItemStyle, color: "#e74c3c" }}
+            onClick={() => { signOut(); setMenuOpen(false); }}
           >
             ログアウト
           </button>
         </div>
       )}
-
-      {hasSearchFilter && (
-        <button
-          onClick={onClearSearch}
-          style={{
-            background: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          全体表示
-        </button>
-      )}
-    </div>
+    </>
   );
 }
+
+const floatBtn: React.CSSProperties = {
+  width: 44,
+  height: 44,
+  borderRadius: "50%",
+  background: "white",
+  border: "none",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+  fontSize: 20,
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const menuItemStyle: React.CSSProperties = {
+  width: "100%",
+  textAlign: "left",
+  padding: "14px 16px",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  fontSize: 15,
+  color: "#333",
+};

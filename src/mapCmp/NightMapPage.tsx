@@ -1,6 +1,5 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
-import { useNavigate } from "react-router-dom";
 import { useMapPage } from "./hooks/useMapPage";
 import MapHeader from "./components/MapHeader";
 import MapBottomToolbar from "./components/MapBottomToolbar";
@@ -15,7 +14,6 @@ const DEFAULT_LAT = 35.6895;
 const DEFAULT_LNG = 139.6917;
 
 export default function NightMapPage({ userId }: { userId: string }) {
-  const navigate = useNavigate();
   const {
     mapContainer,
     lat,
@@ -25,8 +23,6 @@ export default function NightMapPage({ userId }: { userId: string }) {
     setLocations,
     selectedLocation,
     setSelectedLocation,
-    menuOpen,
-    setMenuOpen,
     searchForm,
     setSearchForm,
     displayLocations,
@@ -35,13 +31,10 @@ export default function NightMapPage({ userId }: { userId: string }) {
   } = useMapPage({ defaultLat: DEFAULT_LAT, defaultLng: DEFAULT_LNG, mapStyle: MAP_STYLE, userId, filterByUser: true });
 
   return (
-    <div style={{ position: "relative", height: "100vh", width: "100vw", overflow: "hidden" }}>
+    <div style={{ position: "relative", height: "100dvh", width: "100vw", overflow: "hidden" }}>
       <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
 
       <MapHeader
-        menuOpen={menuOpen}
-        onMenuToggle={() => setMenuOpen((o) => !o)}
-        onMenuClose={() => setMenuOpen(false)}
         onSearchOpen={() => setSearchForm(true)}
         hasSearchFilter={displayLocations.length > 0}
         onClearSearch={() => setDisplayLocations([])}
@@ -49,9 +42,6 @@ export default function NightMapPage({ userId }: { userId: string }) {
 
       <MapBottomToolbar
         onRegister={() => setShowForm(true)}
-        navigateIcon="👥"
-        navigateLabel="みんな"
-        onNavigate={() => navigate("/")}
         onCurrentLocation={moveToCurrentLocation}
       />
 

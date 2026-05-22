@@ -27,7 +27,6 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
   const [showForm, setShowForm] = useState(false);
   const [locations, setLocations] = useState<Schema["Location"]["type"][]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Schema["Location"]["type"] | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchForm, setSearchForm] = useState(false);
   const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
 
@@ -149,8 +148,6 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
     setLocations,
     selectedLocation,
     setSelectedLocation,
-    menuOpen,
-    setMenuOpen,
     searchForm,
     setSearchForm,
     displayLocations,
