@@ -30,7 +30,6 @@ export default function LunchMapPage({ userId }: { userId: string }) {
   //検索用
   const [searchForm, setSearchForm] = useState<boolean>(false);
   const [displayLocations, setDisplayLocations] = useState<Schema["Location"]["type"][]>([]);
-  const [searchValues, setSearchValues] = useState<string>();
 
   const navigate = useNavigate();
   const { signOut } = useAuthenticator();
@@ -60,7 +59,7 @@ export default function LunchMapPage({ userId }: { userId: string }) {
         setLat(pos.coords.latitude);
         setLng(pos.coords.longitude);
       },
-      (err) => {
+      () => {
         setLat(34.702331);
         setLng(135.496025);
       },
@@ -144,9 +143,7 @@ export default function LunchMapPage({ userId }: { userId: string }) {
     );
   };
 
-  const handleSearchChange = (values: string) => {
-    setSearchValues(values);
-  };
+  const handleSearchChange = (_values: string) => {};
 
   const iconButton: React.CSSProperties = {
     background: "transparent",
