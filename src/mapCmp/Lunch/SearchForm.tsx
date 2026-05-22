@@ -5,7 +5,7 @@ import type { Schema } from "../../../amplify/data/resource";
 type Props = {
   onSearchResult: (data: Schema["Location"]["type"][]) => void;
   onClose: () => void;
-  onValuesChange: (value: string) => void;
+  onValuesChange?: (value: string) => void;
 };
 type User = Schema["User"]["type"];
 type LocationFilter = {
@@ -87,6 +87,7 @@ export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesC
   }, []);
 
   useEffect(() => {
+    if (!onValuesChange) return;
     const searchText = category + priceRange + selectedUserName;
     onValuesChange(searchText);
   }, [category, priceRange, selectedUserId, onValuesChange]);
