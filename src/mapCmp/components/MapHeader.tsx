@@ -1,107 +1,66 @@
-import { useNavigate } from "react-router-dom";
-import { useAuthenticator } from "@aws-amplify/ui-react";
-import { mapStyles } from "../mapStyles";
+import { SearchIcon, CloseIcon } from "../../components/icons";
 
 type Props = {
-  menuOpen: boolean;
-  onMenuToggle: () => void;
-  onMenuClose: () => void;
   onSearchOpen: () => void;
   hasSearchFilter: boolean;
   onClearSearch: () => void;
 };
 
-export default function MapHeader({
-  menuOpen,
-  onMenuToggle,
-  onMenuClose,
-  onSearchOpen,
-  hasSearchFilter,
-  onClearSearch,
-}: Props) {
-  const navigate = useNavigate();
-  const { signOut } = useAuthenticator();
-
+/** マップ上部の検索バー（Google Maps 風フローティングピル） */
+export default function MapHeader({ onSearchOpen, hasSearchFilter, onClearSearch }: Props) {
   return (
     <div
       style={{
         position: "absolute",
-        top: 20,
-        left: "5%",
-        right: "5%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "8px 12px",
-        background: "rgba(255, 255, 255, 0.4)",
-        borderRadius: "14px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-        backdropFilter: "blur(8px)",
+        top: "calc(env(safe-area-inset-top, 0px) + 12px)",
+        left: "16px",
+        right: "16px",
         zIndex: 3,
+        display: "flex",
+        gap: "8px",
+        alignItems: "center",
       }}
     >
-      <button onClick={onMenuToggle} style={mapStyles.iconButton}>
-        ☰
+      <button
+        className="press"
+        onClick={onSearchOpen}
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          padding: "13px 16px",
+          borderRadius: "24px",
+          background: "rgba(255,255,255,0.96)",
+          boxShadow: "var(--shadow-float)",
+          color: "var(--text-sub)",
+          fontSize: "15px",
+        }}
+      >
+        <SearchIcon size={18} strokeWidth={2.2} />
+        お店を検索
       </button>
-
-      {menuOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: "60px",
-            left: "10px",
-            background: "white",
-            borderRadius: "8px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-            padding: "8px 0",
-            minWidth: "150px",
-            zIndex: 10,
-          }}
-        >
-          <button
-            style={mapStyles.bottomBtn}
-            onClick={() => {
-              onSearchOpen();
-              onMenuClose();
-            }}
-          >
-            <span>検索</span>
-          </button>
-
-          <button
-            style={mapStyles.menuItem}
-            onClick={() => {
-              navigate("/settings");
-              onMenuClose();
-            }}
-          >
-            ユーザー設定
-          </button>
-
-          <button
-            style={mapStyles.menuItem}
-            onClick={() => {
-              signOut();
-              onMenuClose();
-            }}
-          >
-            ログアウト
-          </button>
-        </div>
-      )}
 
       {hasSearchFilter && (
         <button
+          className="press anim-pop-in"
           onClick={onClearSearch}
           style={{
-            background: "#28a745",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "10px 14px",
+            borderRadius: "20px",
+            background: "var(--text)",
             color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: 600,
+            boxShadow: "var(--shadow-float)",
+            whiteSpace: "nowrap",
           }}
         >
-          全体表示
+          <CloseIcon size={14} strokeWidth={2.4} />
+          解除
         </button>
       )}
     </div>

@@ -53,6 +53,17 @@ const schema = a.schema({
       allow.owner(), // 自分が作成・削除できる
       allow.authenticated("identityPool"),
     ]),
+
+  Like: a
+    .model({
+      locationId: a.string().required(), // いいね対象(Location.id)
+      cognitoSub: a.string().required(), // いいねしたユーザー(User.id)
+    })
+    .authorization((allow) => [
+      allow.owner(), // 自分が作成・削除できる
+      allow.authenticated(),
+      allow.authenticated("identityPool"),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
