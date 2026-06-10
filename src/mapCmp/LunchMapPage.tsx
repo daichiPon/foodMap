@@ -1,12 +1,14 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMapPage } from "./hooks/useMapPage";
 import MapHeader from "./components/MapHeader";
-import MapBottomToolbar from "./components/MapBottomToolbar";
+import MapFilterTabs, { type MapFilterMode } from "./components/MapFilterTabs";
+import MapFloatingControls from "./components/MapFloatingControls";
 import LocationBottomSheet from "./components/LocationBottomSheet";
-import { LunchSideForm } from "./Lunch/SideForm";
 import LunchSearchSideForm from "./Lunch/SearchForm";
+import { fetchFollowing } from "../api/follows";
 
 mapboxgl.accessToken = import.meta.env.VITE_LUNCH_MAPBOX_TOKEN;
 
@@ -16,17 +18,16 @@ const DEFAULT_LNG = 135.496025;
 
 export default function LunchMapPage({ userId }: { userId: string }) {
   const navigate = useNavigate();
+  const [filterMode, setFilterMode] = useState<MapFilterMode>("all");
+  const [followeeIds, setFolloweeIds] = useState<Set<string>>(new Set());
+
   const {
     mapContainer,
     lat,
     lng,
-    showForm,
-    setShowForm,
-    setLocations,
+    locations,
     selectedLocation,
     setSelectedLocation,
-    menuOpen,
-    setMenuOpen,
     searchForm,
     setSearchForm,
     displayLocations,
@@ -34,36 +35,45 @@ export default function LunchMapPage({ userId }: { userId: string }) {
     moveToCurrentLocation,
   } = useMapPage({ defaultLat: DEFAULT_LAT, defaultLng: DEFAULT_LNG, mapStyle: MAP_STYLE, userId, filterByUser: false });
 
+  useEffect(() => {
+    fetchFollowing(userId).then((follows) =>
+      setFolloweeIds(new Set(follows.map((f) => f.followeeId)))
+    );
+  }, [userId]);
+
+  /** 全員/自分/フレンドの切り替え */
+  const handleFilterChange = (mode: MapFilterMode) => {
+    setFilterMode(mode);
+    if (mode === "all") {
+      setDisplayLocations([]);
+    } else if (mode === "mine") {
+      setDisplayLocations(locations.filter((loc) => loc.cognitoSub === userId));
+    } else {
+      setDisplayLocations(
+        locations.filter(
+          (loc) =>
+            loc.cognitoSub === userId || (loc.cognitoSub != null && followeeIds.has(loc.cognitoSub))
+        )
+      );
+    }
+  };
+
   return (
-    <div style={{ position: "relative", height: "100vh", width: "100vw", overflow: "hidden" }}>
+    <div style={{ position: "relative", height: "100%", width: "100%", overflow: "hidden" }}>
       <div ref={mapContainer} style={{ height: "100%", width: "100%" }} />
 
       <MapHeader
-        menuOpen={menuOpen}
-        onMenuToggle={() => setMenuOpen((o) => !o)}
-        onMenuClose={() => setMenuOpen(false)}
         onSearchOpen={() => setSearchForm(true)}
-        hasSearchFilter={displayLocations.length > 0}
+        hasSearchFilter={filterMode === "all" && displayLocations.length > 0}
         onClearSearch={() => setDisplayLocations([])}
       />
 
-      <MapBottomToolbar
-        onRegister={() => setShowForm(true)}
-        navigateIcon="👤"
-        navigateLabel="自分"
-        onNavigate={() => navigate("/night")}
-        onCurrentLocation={moveToCurrentLocation}
-      />
+      <MapFilterTabs mode={filterMode} onChange={handleFilterChange} />
 
-      {showForm && (
-        <LunchSideForm
-          lat={lat}
-          lng={lng}
-          userId={userId}
-          onClose={() => setShowForm(false)}
-          onRegisterComplete={(newLoc) => setLocations((prev) => [...prev, newLoc])}
-        />
-      )}
+      <MapFloatingControls
+        onCurrentLocation={moveToCurrentLocation}
+        onRegisterHere={() => navigate("/register", { state: { lat, lng } })}
+      />
 
       {searchForm && (
         <LunchSearchSideForm

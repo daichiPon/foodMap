@@ -31,6 +31,20 @@ type User
   email: String!
 }
 
+type Like
+  @model
+  @auth(
+    rules: [
+      { allow: owner, ownerField: "cognitoSub" } # 自分だけが作成/削除できる
+      { allow: public, operations: [read] } # 誰でもいいね数を読み取り可
+    ]
+  ) {
+  id: ID!
+  locationId: ID! # いいね対象(Location.id)
+  cognitoSub: String! # いいねしたユーザー(User.id)
+  createdAt: AWSDateTime
+}
+
 type Follow
   @model
   @auth(

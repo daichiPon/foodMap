@@ -16,7 +16,8 @@ type Options = {
 export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByUser }: Options) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const currentMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const currentMarkerRef = useRef<mapboxgl.Marker | null>(null); // 現在地ドット（波紋）
+  const pinMarkerRef = useRef<mapboxgl.Marker | null>(null); // 登録位置ピン（ドラッグ可）
   const savedMarkersRef = useRef<mapboxgl.Marker[]>([]);
 
   // useEffect の deps に含めずに初期値だけ参照するための ref
@@ -45,7 +46,7 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
     fetchLocations();
   }, [filterByUser, userId]);
 
-  /** 現在地を取得 */
+  /** 現在地を取得して波紋ドットと登録ピンを移動 */
   useEffect(() => {
     if (!navigator.geolocation) {
       alert("現在地取得がサポートされていません");
@@ -53,8 +54,12 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLat(pos.coords.latitude);
-        setLng(pos.coords.longitude);
+        const { latitude, longitude } = pos.coords;
+        setLat(latitude);
+        setLng(longitude);
+        currentMarkerRef.current?.setLngLat([longitude, latitude]);
+        pinMarkerRef.current?.setLngLat([longitude, latitude]);
+        mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 14 });
       },
       () => {
         setLat(initRef.current.defaultLat);
@@ -78,19 +83,31 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
     });
     mapRef.current = map;
 
-    const marker = new mapboxgl.Marker({ draggable: true })
+    // 現在地ドット: 波紋エフェクト付き・固定（ドラッグ不可）
+    const el = document.createElement("div");
+    el.className = "current-location-marker";
+    el.innerHTML =
+      '<div class="clm-ripple"></div><div class="clm-ripple clm-ripple-delay"></div><div class="clm-dot"></div>';
+
+    const dot = new mapboxgl.Marker({ element: el })
       .setLngLat([initLng, initLat])
       .addTo(map);
-    currentMarkerRef.current = marker;
+    currentMarkerRef.current = dot;
 
-    marker.on("dragend", () => {
-      const lngLat = marker.getLngLat();
+    // 登録ピン: ドラッグ・タップで自由に動かせる（登録位置の指定用）
+    const pin = new mapboxgl.Marker({ color: "#FF8E53", draggable: true })
+      .setLngLat([initLng, initLat])
+      .addTo(map);
+    pinMarkerRef.current = pin;
+
+    pin.on("dragend", () => {
+      const lngLat = pin.getLngLat();
       setLat(lngLat.lat);
       setLng(lngLat.lng);
     });
 
     map.on("click", (e) => {
-      marker.setLngLat(e.lngLat);
+      pin.setLngLat(e.lngLat);
       setLat(e.lngLat.lat);
       setLng(e.lngLat.lng);
     });
@@ -122,7 +139,7 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
     });
   }, [locations, displayLocations]);
 
-  /** 現在地に戻る */
+  /** 現在地に戻る（ドット・登録ピンとも現在地へ） */
   const moveToCurrentLocation = () => {
     if (!mapRef.current || !currentMarkerRef.current) return;
 
@@ -133,6 +150,7 @@ export function useMapPage({ defaultLat, defaultLng, mapStyle, userId, filterByU
         setLng(longitude);
         mapRef.current!.flyTo({ center: [longitude, latitude], zoom: 14 });
         currentMarkerRef.current!.setLngLat([longitude, latitude]);
+        pinMarkerRef.current?.setLngLat([longitude, latitude]);
       },
       (err) => alert("現在地を取得できません: " + err.message),
       { enableHighAccuracy: true }
