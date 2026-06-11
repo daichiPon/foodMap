@@ -5,7 +5,8 @@ import { uploadData } from "aws-amplify/storage";
 import type { Schema } from "../../amplify/data/resource";
 import { CATEGORIES, PRICE_RANGES, HOTPEPPER_API_URL } from "../constants/food";
 import PageHeader from "../components/PageHeader";
-import { CameraIcon, PinIcon } from "../components/icons";
+import MapPicker from "../components/MapPicker";
+import { CameraIcon, PinIcon, MapIcon } from "../components/icons";
 
 const client = generateClient<Schema>({ authMode: "userPool" });
 
@@ -40,6 +41,7 @@ export default function QuickRegisterPage({ userId }: { userId: string }) {
   const [priceRange, setPriceRange] = useState("");
   const [desc, setDesc] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
 
   /** 座標をセットして住所＋周辺店舗候補を取得 */
   const applyPosition = async (latitude: number, longitude: number) => {
@@ -102,7 +104,7 @@ export default function QuickRegisterPage({ userId }: { userId: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (lat == null || lng == null) {
-      alert("「現在地をセット」ボタンで位置情報を取得してください");
+      alert("「現在地を使う」または「地図から選ぶ」で位置を指定してください");
       return;
     }
     setSubmitting(true);
@@ -210,33 +212,81 @@ export default function QuickRegisterPage({ userId }: { userId: string }) {
           )}
         </button>
 
-        {/* 現在地セット */}
-        <button
-          type="button"
-          className="press"
-          onClick={useCurrentLocation}
-          disabled={locating}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            background: lat != null ? "#E8F5E9" : "var(--primary-gradient)",
-            color: lat != null ? "#2E7D32" : "white",
-            borderRadius: "var(--radius-sm)",
-            padding: "14px",
-            fontSize: "15px",
-            fontWeight: 600,
-            boxShadow: lat != null ? "none" : "0 4px 12px rgba(255,107,107,0.35)",
-          }}
-        >
-          <PinIcon size={17} strokeWidth={2.2} />
-          {locating
-            ? "取得中..."
-            : lat != null
-              ? `位置セット済み: ${address}`
-              : "現在地から位置情報をセット"}
-        </button>
+        {/* 位置の指定: 現在地 or 地図から選択 */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            type="button"
+            className="press"
+            onClick={useCurrentLocation}
+            disabled={locating}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              background: "var(--primary-gradient)",
+              color: "white",
+              borderRadius: "var(--radius-sm)",
+              padding: "14px 8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              boxShadow: "0 4px 12px rgba(255,107,107,0.35)",
+            }}
+          >
+            <PinIcon size={16} strokeWidth={2.2} />
+            {locating ? "取得中..." : "現在地を使う"}
+          </button>
+          <button
+            type="button"
+            className="press"
+            onClick={() => setShowMapPicker((v) => !v)}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              background: showMapPicker ? "var(--text)" : "var(--surface)",
+              color: showMapPicker ? "white" : "var(--text)",
+              border: showMapPicker ? "none" : "1px solid var(--border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "14px 8px",
+              fontSize: "14px",
+              fontWeight: 600,
+              boxShadow: "var(--shadow-card)",
+            }}
+          >
+            <MapIcon size={16} strokeWidth={2.2} />
+            地図から選ぶ
+          </button>
+        </div>
+
+        {showMapPicker && (
+          <MapPicker
+            value={lat != null && lng != null ? { lat, lng } : null}
+            onChange={(la, ln) => applyPosition(la, ln)}
+          />
+        )}
+
+        {lat != null && (
+          <div
+            className="anim-fade-in"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "#E8F5E9",
+              color: "#2E7D32",
+              borderRadius: "var(--radius-sm)",
+              padding: "11px 14px",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
+          >
+            ✅ {address || "位置セット済み"}
+          </div>
+        )}
 
         <input
           placeholder="店名を入力または選択"
