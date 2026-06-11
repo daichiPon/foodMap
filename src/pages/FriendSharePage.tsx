@@ -10,9 +10,11 @@ import {
   type FollowType,
 } from "../api/follows";
 import type { UserType } from "../api/user";
+import { fetchWantsByLocation, type WantType } from "../api/wants";
 import MiniMap from "../components/MiniMap";
 import PageHeader from "../components/PageHeader";
-import { SearchIcon } from "../components/icons";
+import QRFollowSheet from "../components/QRFollowSheet";
+import { SearchIcon, QrIcon } from "../components/icons";
 import LocationBottomSheet from "../mapCmp/components/LocationBottomSheet";
 
 const client = generateClient<Schema>({ authMode: "userPool" });
@@ -32,15 +34,21 @@ export default function FriendSharePage({ userId }: { userId: string }) {
   const [sharedLocations, setSharedLocations] = useState<LocationType[]>([]);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(null);
+  const [allLocations, setAllLocations] = useState<LocationType[]>([]);
+  const [wantsMap, setWantsMap] = useState<Map<string, WantType[]>>(new Map());
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchFollowing(userId), fetchUserMap()]).then(([follows, users]) => {
-      setFollowing(follows);
-      setUserMap(users);
-    });
+    Promise.all([fetchFollowing(userId), fetchUserMap(), fetchWantsByLocation()]).then(
+      ([follows, users, wants]) => {
+        setFollowing(follows);
+        setUserMap(users);
+        setWantsMap(wants);
+      }
+    );
   }, [userId]);
 
-  /** フレンド選択 → 2人分の地点を取得 */
+  /** フレンド選択 → 2人分の地点＋全地点（WANTマッチ照合用）を取得 */
   useEffect(() => {
     if (!selectedFriend) {
       setSharedLocations([]);
@@ -48,19 +56,31 @@ export default function FriendSharePage({ userId }: { userId: string }) {
     }
     const load = async () => {
       try {
-        const res = await client.models.Location.list({
-          filter: {
-            or: [{ cognitoSub: { eq: userId } }, { cognitoSub: { eq: selectedFriend.id } }],
-          },
-          limit: 1000,
-        });
-        setSharedLocations(res.data || []);
+        const res = await client.models.Location.list({ limit: 1000 });
+        const all = res.data || [];
+        setAllLocations(all);
+        setSharedLocations(
+          all.filter(
+            (loc) => loc.cognitoSub === userId || loc.cognitoSub === selectedFriend.id
+          )
+        );
       } catch (err) {
         console.error("共有地点取得エラー:", err);
       }
     };
     load();
   }, [selectedFriend, userId]);
+
+  /** 2人とも「行きたい」を付けた店（WANTマッチ） */
+  const matchedWants = selectedFriend
+    ? allLocations.filter((loc) => {
+        const wants = wantsMap.get(loc.id) || [];
+        return (
+          wants.some((w) => w.cognitoSub === userId) &&
+          wants.some((w) => w.cognitoSub === selectedFriend.id)
+        );
+      })
+    : [];
 
   const handleSearch = async () => {
     if (!keyword.trim()) return;
@@ -74,6 +94,31 @@ export default function FriendSharePage({ userId }: { userId: string }) {
     const created = await followUser(userId, target.id);
     if (created) {
       setFollowing((prev) => [...prev, created]);
+    } else {
+      alert("フォローに失敗しました");
+    }
+  };
+
+  /** QRスキャン成功 → フォロー */
+  const handleQRScanned = async (targetId: string) => {
+    setShowQR(false);
+    if (targetId === userId) {
+      alert("自分のQRコードです");
+      return;
+    }
+    const target = userMap.get(targetId);
+    if (!target) {
+      alert("ユーザーが見つかりません");
+      return;
+    }
+    if (following.some((f) => f.followeeId === targetId)) {
+      alert(`${target.username} さんはすでにフレンドです`);
+      return;
+    }
+    const created = await followUser(userId, targetId);
+    if (created) {
+      setFollowing((prev) => [...prev, created]);
+      alert(`🎉 ${target.username} さんをフォローしました！`);
     } else {
       alert("フォローに失敗しました");
     }
@@ -138,6 +183,25 @@ export default function FriendSharePage({ userId }: { userId: string }) {
           }}
         >
           <SearchIcon size={19} strokeWidth={2.3} />
+        </button>
+        <button
+          className="press"
+          onClick={() => setShowQR(true)}
+          aria-label="QRでフォロー"
+          style={{
+            background: "var(--text)",
+            color: "white",
+            borderRadius: "50%",
+            width: "46px",
+            height: "46px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "var(--shadow-card)",
+            flexShrink: 0,
+          }}
+        >
+          <QrIcon size={19} strokeWidth={2.1} />
         </button>
       </div>
 
@@ -217,6 +281,48 @@ export default function FriendSharePage({ userId }: { userId: string }) {
       {/* 2人の共有スペース */}
       {selectedFriend && (
         <div>
+          {matchedWants.length > 0 && (
+            <div
+              className="anim-pop-in"
+              style={{
+                background: "linear-gradient(135deg, #FFF7E6, #FFEFD6)",
+                border: "1px solid #FFE0A3",
+                borderRadius: "var(--radius)",
+                padding: "14px 16px",
+                marginBottom: "14px",
+              }}
+            >
+              <div style={{ fontWeight: 800, fontSize: "15px", marginBottom: "8px" }}>
+                🎉 マッチ！2人とも行きたい店
+              </div>
+              {matchedWants.map((loc) => (
+                <button
+                  key={loc.id}
+                  className="press"
+                  onClick={() => setSelectedLocation(loc)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "8px 10px",
+                    background: "rgba(255,255,255,0.7)",
+                    borderRadius: "10px",
+                    marginBottom: "4px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                  }}
+                >
+                  🔖 {loc.name}
+                  <span style={{ marginLeft: "auto", fontSize: "11px", color: "var(--text-sub)" }}>
+                    {loc.category}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
           <div
             style={{
               display: "flex",
@@ -324,6 +430,15 @@ export default function FriendSharePage({ userId }: { userId: string }) {
 
       {selectedLocation && (
         <LocationBottomSheet location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+      )}
+
+      {showQR && (
+        <QRFollowSheet
+          userId={userId}
+          username={userMap.get(userId)?.username || "自分"}
+          onClose={() => setShowQR(false)}
+          onScanned={handleQRScanned}
+        />
       )}
       </div>
     </div>

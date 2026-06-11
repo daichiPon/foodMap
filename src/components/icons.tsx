@@ -98,6 +98,15 @@ export const LogoutIcon = ({ size = 24, strokeWidth = 2, style }: IconProps) => 
   </svg>
 );
 
+export const QrIcon = ({ size = 24, strokeWidth = 2, style }: IconProps) => (
+  <svg {...base(size)} strokeWidth={strokeWidth} style={style}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+    <path d="M14 14h3v3h-3zM21 14v.5M14 20.5v.5h3.5M21 18v3" />
+  </svg>
+);
+
 export const CloseIcon = ({ size = 24, strokeWidth = 2, style }: IconProps) => (
   <svg {...base(size)} strokeWidth={strokeWidth} style={style}>
     <path d="M6 6l12 12M18 6 6 18" />

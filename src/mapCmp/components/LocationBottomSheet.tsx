@@ -13,29 +13,30 @@ export default function LocationBottomSheet({ location, onClose }: Props) {
         className="anim-fade-in"
         onClick={onClose}
         style={{
-          position: "absolute",
+          position: "fixed",
           inset: 0,
           background: "rgba(0,0,0,0.25)",
-          zIndex: 4,
+          zIndex: 30,
         }}
       />
 
       <div
         className="anim-slide-up"
         style={{
-          position: "absolute",
+          position: "fixed",
           bottom: 0,
           left: 0,
           width: "100%",
           boxSizing: "border-box",
           background: "var(--surface)",
-          maxHeight: "70%",
+          maxHeight: "70dvh",
           overflowY: "auto",
+          overscrollBehavior: "contain",
           borderTopLeftRadius: "22px",
           borderTopRightRadius: "22px",
           boxShadow: "0 -8px 32px rgba(0,0,0,0.18)",
           paddingBottom: "max(env(safe-area-inset-bottom), 16px)",
-          zIndex: 5,
+          zIndex: 31,
         }}
       >
         {/* グラバー */}

@@ -45,6 +45,20 @@ type Like
   createdAt: AWSDateTime
 }
 
+type Want
+  @model
+  @auth(
+    rules: [
+      { allow: owner, ownerField: "cognitoSub" } # 自分だけが作成/削除できる
+      { allow: public, operations: [read] } # 誰でも行きたいを読み取り可
+    ]
+  ) {
+  id: ID!
+  locationId: ID! # 行きたい対象(Location.id)
+  cognitoSub: String! # 行きたいを付けたユーザー(User.id)
+  createdAt: AWSDateTime
+}
+
 type Follow
   @model
   @auth(

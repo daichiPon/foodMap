@@ -9,11 +9,14 @@ import { fetchFollowing, unfollowUser, fetchUserMap, type FollowType } from "../
 import PageHeader from "../components/PageHeader";
 import { SettingsIcon, LogoutIcon, ChevronRightIcon, UserIcon } from "../components/icons";
 import LocationBottomSheet from "../mapCmp/components/LocationBottomSheet";
+import EditLocationSheet from "../components/EditLocationSheet";
+import { deleteLocation } from "../api/locations";
+import { fetchMyWants } from "../api/wants";
 
 const client = generateClient<Schema>({ authMode: "userPool" });
 
 type LocationType = Schema["Location"]["type"];
-type Tab = "posts" | "likes" | "friends";
+type Tab = "posts" | "likes" | "wants" | "friends";
 
 export default function MyPage({ userId }: { userId: string }) {
   const navigate = useNavigate();
@@ -22,10 +25,12 @@ export default function MyPage({ userId }: { userId: string }) {
   const [user, setUser] = useState<UserType | null>(null);
   const [myPosts, setMyPosts] = useState<LocationType[]>([]);
   const [likedLocations, setLikedLocations] = useState<LocationType[]>([]);
+  const [wantedLocations, setWantedLocations] = useState<LocationType[]>([]);
   const [following, setFollowing] = useState<FollowType[]>([]);
   const [userMap, setUserMap] = useState<Map<string, UserType>>(new Map());
   const [tab, setTab] = useState<Tab>("posts");
   const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(null);
+  const [editingLocation, setEditingLocation] = useState<LocationType | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -39,9 +44,12 @@ export default function MyPage({ userId }: { userId: string }) {
       setUserMap(users);
 
       try {
-        const [postsRes, likesRes] = await Promise.all([
+        const [postsRes, likesRes, myWants] = await Promise.all([
           client.models.Location.list({ filter: { cognitoSub: { eq: userId } }, limit: 1000 }),
-          client.models.Like.list({ filter: { cognitoSub: { eq: userId } }, limit: 1000 }),
+          client.models.Like
+            ? client.models.Like.list({ filter: { cognitoSub: { eq: userId } }, limit: 1000 })
+            : Promise.resolve({ data: [] }),
+          fetchMyWants(userId),
         ]);
         const posts = (postsRes.data || []).sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -49,12 +57,20 @@ export default function MyPage({ userId }: { userId: string }) {
         setMyPosts(posts);
 
         const likedIds = (likesRes.data || []).map((l) => l.locationId);
-        if (likedIds.length > 0) {
+        const wantedIds = myWants.map((w) => w.locationId);
+        const allIds = [...new Set([...likedIds, ...wantedIds])];
+        if (allIds.length > 0) {
           const locRes = await client.models.Location.list({
-            filter: { or: likedIds.map((id) => ({ id: { eq: id } })) },
+            filter: { or: allIds.map((id) => ({ id: { eq: id } })) },
             limit: 1000,
           });
-          setLikedLocations(locRes.data || []);
+          const byId = new Map<string, LocationType>(
+            (locRes.data || []).map((l) => [l.id, l as LocationType])
+          );
+          setLikedLocations(likedIds.map((id) => byId.get(id)).filter((l): l is LocationType => !!l));
+          setWantedLocations(
+            wantedIds.map((id) => byId.get(id)).filter((l): l is LocationType => !!l)
+          );
         }
       } catch (err) {
         console.error("マイページ取得エラー:", err);
@@ -82,7 +98,19 @@ export default function MyPage({ userId }: { userId: string }) {
     cursor: "pointer",
   });
 
-  const locationRow = (loc: LocationType) => (
+  /** 投稿削除（確認つき） */
+  const handleDeleteLocation = async (loc: LocationType) => {
+    if (!confirm(`「${loc.name}」を削除しますか？この操作は取り消せません。`)) return;
+    const ok = await deleteLocation(loc.id);
+    if (ok) {
+      setMyPosts((prev) => prev.filter((p) => p.id !== loc.id));
+      setEditingLocation(null);
+    } else {
+      alert("削除に失敗しました");
+    }
+  };
+
+  const locationRow = (loc: LocationType, editable = false) => (
     <div
       key={loc.id}
       onClick={() => setSelectedLocation(loc)}
@@ -110,6 +138,27 @@ export default function MyPage({ userId }: { userId: string }) {
           alt={loc.name || ""}
           style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "8px" }}
         />
+      )}
+      {editable && (
+        <button
+          className="press"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditingLocation(loc);
+          }}
+          style={{
+            border: "1px solid var(--border)",
+            borderRadius: "8px",
+            padding: "6px 10px",
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "var(--text-sub)",
+            background: "#f7f8fa",
+            flexShrink: 0,
+          }}
+        >
+          編集
+        </button>
       )}
     </div>
   );
@@ -163,6 +212,9 @@ export default function MyPage({ userId }: { userId: string }) {
         <button style={tabStyle(tab === "likes")} onClick={() => setTab("likes")}>
           ❤️ いいね
         </button>
+        <button style={tabStyle(tab === "wants")} onClick={() => setTab("wants")}>
+          🔖 行きたい
+        </button>
         <button style={tabStyle(tab === "friends")} onClick={() => setTab("friends")}>
           👥 フレンド
         </button>
@@ -173,7 +225,7 @@ export default function MyPage({ userId }: { userId: string }) {
           {myPosts.length === 0 && (
             <p style={{ color: "#888", fontSize: "14px" }}>まだ投稿がありません</p>
           )}
-          {myPosts.map(locationRow)}
+          {myPosts.map((loc) => locationRow(loc, true))}
         </div>
       )}
 
@@ -182,7 +234,18 @@ export default function MyPage({ userId }: { userId: string }) {
           {likedLocations.length === 0 && (
             <p style={{ color: "#888", fontSize: "14px" }}>いいねした店舗がまだありません</p>
           )}
-          {likedLocations.map(locationRow)}
+          {likedLocations.map((loc) => locationRow(loc))}
+        </div>
+      )}
+
+      {tab === "wants" && (
+        <div>
+          {wantedLocations.length === 0 && (
+            <p style={{ color: "#888", fontSize: "14px" }}>
+              行きたい店がまだありません。タイムラインで🔖を押してみましょう
+            </p>
+          )}
+          {wantedLocations.map((loc) => locationRow(loc))}
         </div>
       )}
 
@@ -275,6 +338,17 @@ export default function MyPage({ userId }: { userId: string }) {
 
       {selectedLocation && (
         <LocationBottomSheet location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+      )}
+
+      {editingLocation && (
+        <EditLocationSheet
+          location={editingLocation}
+          onClose={() => setEditingLocation(null)}
+          onSaved={(updated) =>
+            setMyPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+          }
+          onDelete={handleDeleteLocation}
+        />
       )}
       </div>
     </div>

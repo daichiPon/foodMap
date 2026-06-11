@@ -97,17 +97,17 @@ export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesC
         className="anim-fade-in"
         onClick={onClose}
         style={{
-          position: "absolute",
+          position: "fixed",
           inset: 0,
           background: "rgba(0,0,0,0.25)",
-          zIndex: 4,
+          zIndex: 30,
         }}
       />
 
       <div
         className="anim-slide-up"
         style={{
-          position: "absolute",
+          position: "fixed",
           bottom: 0,
           left: 0,
           width: "100%",
@@ -121,7 +121,7 @@ export default function LunchSearchSideForm({ onSearchResult, onClose, onValuesC
           display: "flex",
           flexDirection: "column",
           gap: "10px",
-          zIndex: 5,
+          zIndex: 31,
         }}
       >
         {/* グラバー */}

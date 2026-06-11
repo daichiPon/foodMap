@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../../amplify/data/resource";
 import { fetchLikesByLocation, likeLocation, unlikeLocation, type LikeType } from "../api/likes";
+import { fetchWantsByLocation, wantLocation, unwantLocation, type WantType } from "../api/wants";
 import { fetchUserMap } from "../api/follows";
 import type { UserType } from "../api/user";
 import PageHeader from "../components/PageHeader";
@@ -13,15 +14,17 @@ type LocationType = Schema["Location"]["type"];
 export default function TimelinePage({ userId }: { userId: string }) {
   const [locations, setLocations] = useState<LocationType[]>([]);
   const [likesMap, setLikesMap] = useState<Map<string, LikeType[]>>(new Map());
+  const [wantsMap, setWantsMap] = useState<Map<string, WantType[]>>(new Map());
   const [userMap, setUserMap] = useState<Map<string, UserType>>(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [locRes, likes, users] = await Promise.all([
+        const [locRes, likes, wants, users] = await Promise.all([
           client.models.Location.list({ limit: 1000 }),
           fetchLikesByLocation(),
+          fetchWantsByLocation(),
           fetchUserMap(),
         ]);
         const sorted = (locRes.data || []).sort(
@@ -29,6 +32,7 @@ export default function TimelinePage({ userId }: { userId: string }) {
         );
         setLocations(sorted);
         setLikesMap(likes);
+        setWantsMap(wants);
         setUserMap(users);
       } catch (err) {
         console.error("タイムライン取得エラー:", err);
@@ -68,6 +72,35 @@ export default function TimelinePage({ userId }: { userId: string }) {
     }
   };
 
+  const handleWantToggle = async (locationId: string) => {
+    const wants = wantsMap.get(locationId) || [];
+    const myWant = wants.find((w) => w.cognitoSub === userId);
+
+    // 楽観的更新
+    const next = new Map(wantsMap);
+    if (myWant) {
+      next.set(locationId, wants.filter((w) => w.id !== myWant.id));
+      setWantsMap(next);
+      const ok = await unwantLocation(myWant.id);
+      if (!ok) {
+        next.set(locationId, wants);
+        setWantsMap(new Map(next));
+      }
+    } else {
+      const optimistic = { id: `tmp-${Date.now()}`, locationId, cognitoSub: userId } as WantType;
+      next.set(locationId, [...wants, optimistic]);
+      setWantsMap(next);
+      const created = await wantLocation(locationId, userId);
+      const fixed = new Map(next);
+      if (created) {
+        fixed.set(locationId, [...wants, created]);
+      } else {
+        fixed.set(locationId, wants);
+      }
+      setWantsMap(fixed);
+    }
+  };
+
   if (loading) {
     return (
       <p style={{ textAlign: "center", marginTop: "40px", color: "var(--text-sub)" }}>
@@ -88,6 +121,8 @@ export default function TimelinePage({ userId }: { userId: string }) {
       {locations.map((loc) => {
         const likes = likesMap.get(loc.id) || [];
         const liked = likes.some((l) => l.cognitoSub === userId);
+        const wants = wantsMap.get(loc.id) || [];
+        const wanted = wants.some((w) => w.cognitoSub === userId);
         const poster = loc.cognitoSub ? userMap.get(loc.cognitoSub) : undefined;
         const date = new Date(loc.createdAt).toLocaleDateString("ja-JP", {
           year: "numeric",
@@ -168,22 +203,43 @@ export default function TimelinePage({ userId }: { userId: string }) {
                 <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#999" }}>📍 {loc.address}</p>
               )}
 
-              <button
-                className="press"
-                onClick={() => handleLikeToggle(loc.id)}
-                style={{
-                  marginTop: "10px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  color: liked ? "var(--primary)" : "var(--text-sub)",
-                }}
-              >
-                <span style={{ fontSize: "20px" }}>{liked ? "❤️" : "🤍"}</span>
-                <span>{likes.length}</span>
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "18px", marginTop: "10px" }}>
+                <button
+                  className="press"
+                  onClick={() => handleLikeToggle(loc.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "15px",
+                    fontWeight: 600,
+                    color: liked ? "var(--primary)" : "var(--text-sub)",
+                  }}
+                >
+                  <span style={{ fontSize: "20px" }}>{liked ? "❤️" : "🤍"}</span>
+                  <span>{likes.length}</span>
+                </button>
+
+                <button
+                  className="press"
+                  onClick={() => handleWantToggle(loc.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: wanted ? "#0A84FF" : "var(--text-sub)",
+                    background: wanted ? "#EAF3FF" : "#f3f4f6",
+                    borderRadius: "14px",
+                    padding: "6px 12px",
+                  }}
+                >
+                  <span style={{ fontSize: "15px" }}>🔖</span>
+                  <span>{wanted ? "行きたい済" : "行きたい"}</span>
+                  {wants.length > 0 && <span>{wants.length}</span>}
+                </button>
+              </div>
             </div>
           </article>
         );

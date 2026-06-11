@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/data";
-import { uploadData } from "aws-amplify/storage";
 import type { Schema } from "../../amplify/data/resource";
+import { uploadImage } from "../api/storage";
 import { CATEGORIES, PRICE_RANGES, HOTPEPPER_API_URL } from "../constants/food";
 import PageHeader from "../components/PageHeader";
 import MapPicker from "../components/MapPicker";
@@ -112,16 +112,7 @@ export default function QuickRegisterPage({ userId }: { userId: string }) {
       let imageUrl: string | undefined = undefined;
 
       if (file) {
-        const uniqueId = crypto.randomUUID();
-        const key = `public/picture-submissions/${uniqueId}-${file.name}`;
-        await uploadData({
-          path: key,
-          data: file,
-          options: { contentType: file.type },
-        });
-        const region = "ap-northeast-1";
-        const bucketName = import.meta.env.VITE_S3_BUCKET_NAME as string;
-        imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+        imageUrl = await uploadImage(file);
       }
 
       const res = await client.models.Location.create({
